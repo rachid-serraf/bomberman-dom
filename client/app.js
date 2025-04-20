@@ -7,6 +7,7 @@ setRoot("app")
 const router = new Router(renderComponent)
 export { room, left_time, sendMessage, messages }
 let MapState = null;
+let myUid = ""
 function createDebugPanel() {
   const debugPanel = document.createElement('div');
   debugPanel.id = 'debug-panel';
@@ -23,7 +24,7 @@ function createDebugPanel() {
   debugPanel.style.maxHeight = '150px';
   debugPanel.style.overflow = 'auto';
   debugPanel.style.zIndex = '1000';
-  document.body.appendChild(debugPanel);
+  // document.body.appendChild(debugPanel);
   return debugPanel;
 }
 
@@ -35,9 +36,7 @@ function updateDebugInfo(info) {
 }
 
 function Game() {
-  console.log(MapState);
   if (!MapState) return vdm("div", {}, "loding map...")
-
 
   function draw() {
     let tiles = []
@@ -84,7 +83,10 @@ function Game() {
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${tileSize}px)`;
   }
   let players = [];
+  console.log(myUid);
+  
   for (let [uid, position] of Object.entries(MapState.players)) {
+    if (uid === "unknow") continue;
     if (uid === myUid) {
       players.push(() => CurrPlayer(position));
     } else {
@@ -97,7 +99,7 @@ function Game() {
     "div",
     {},
     vdm("div", { id: "game-container", ref: contanerRef }, ...draw()),
-    ...players.map(fn => fn())  
+    ...players.map(fn => fn())
   );
 }
 
@@ -106,7 +108,6 @@ let ws
 let room = {}
 let left_time = 20
 let nickname
-let myUid = ""
 let messages = []
 function sendMessage(e) {
   e.preventDefault();
@@ -506,9 +507,14 @@ function OtherPlayer(uid, initialPos = [0, 0]) {
   let playerHeight = 32;
   let currentDirection = "down";
   let animationFrameId;
+  let speedX
+  let speedY
 
   function initPlayer() {
+    playerEl = document.getElementById(`other-player-${uid}`)
     const tileEl = document.querySelector(`[data-row="${initialPos[0]}"][data-col="${initialPos[1]}"]`);
+    console.log(tileEl);
+
     if (tileEl) {
       const tileRect = tileEl.getBoundingClientRect();
       tileWidth = Math.round(tileRect.width);
@@ -531,40 +537,41 @@ function OtherPlayer(uid, initialPos = [0, 0]) {
     }
   }
 
-  function updateDirection(dir) {
-    playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
+  function initPlayer2() {
+    playerEl = document.getElementById(`other-player-${uid}`)
+    const tileElement = document.querySelector(`[data-row="${initialPos[0]}"][data-col="${initialPos[1]}"]`);
+    if (!tileElement) {
+      updateDebugInfo({ "Error": "Could not find initial tile for positioning" });
+      return;
+    }
+    console.log(tileElement);
+    console.log(playerEl);
 
-    if (dir) {
-      playerEl.classList.add(dir);
-      currentDirection = dir;
-    } else {
-      playerEl.classList.add(`idle-${currentDirection}`);
+    const tileRect = tileElement.getBoundingClientRect();
+    tileWidth = Math.round(tileRect.width);
+    tileHeight = Math.round(tileRect.height);
+    playerWidth = tileWidth - 5;
+    playerHeight = tileHeight - 5;
+    // speedX = Math.max(1, Math.floor(tileWidth / 20));
+    // speedY = Math.max(1, Math.floor(tileHeight / 20));
+
+    if (playerEl) {
+      playerEl.style.width = `${playerWidth}px`;
+      playerEl.style.height = `${playerHeight}px`;
+      playerEl.style.top = `${tileRect.top + 2.5}px`;
+      playerEl.style.left = `${tileRect.left + 2.5}px`;
+
+
+      const spriteScaleFactor = playerHeight / 32;
+
+      playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
+      playerEl.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
+      playerEl.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
+
     }
   }
 
-  function handleWsUpdate(data) {
-    if (data.uid !== uid) return;
-
-    xPos = data.xPos;
-    yPos = data.yPos;
-    updateDirection(data.direction || "idle");
-
-    playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
-  }
-
-  // Add the handler
-  if (!window._otherPlayerListeners) window._otherPlayerListeners = {};
-  if (!window._otherPlayerListeners[uid]) {
-    ws.addEventListener("message", (e) => {
-      const data = JSON.parse(e.data);
-      if (data.type === "player_moveng") {
-        handleWsUpdate(data);
-      }
-    });
-    window._otherPlayerListeners[uid] = true;
-  }
-
-  setTimeout(initPlayer, 10);
+  setTimeout(initPlayer2, 10);
 
   return vdm("div", {
     id: `other-player-${uid}`,
