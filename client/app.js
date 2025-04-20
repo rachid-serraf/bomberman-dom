@@ -7,7 +7,6 @@ setRoot("app")
 const router = new Router(renderComponent)
 export { room, left_time, sendMessage, messages }
 let MapState = null;
-let myUid = ""
 function createDebugPanel() {
   const debugPanel = document.createElement('div');
   debugPanel.id = 'debug-panel';
@@ -83,14 +82,14 @@ function Game() {
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${tileSize}px)`;
   }
   let players = [];
-  console.log(myUid);
-  
-  for (let [uid, position] of Object.entries(MapState.players)) {
-    if (uid === "unknow") continue;
-    if (uid === myUid) {
+  console.log(MapState);
+
+  for (let [nam, position] of Object.entries(MapState.players)) {
+    if (nam === "undefined") continue;
+    if (nam === nickname) {
       players.push(() => CurrPlayer(position));
     } else {
-      players.push(() => OtherPlayer(uid, position));
+      players.push(() => OtherPlayer(nam, position));
     }
   }
 
@@ -145,7 +144,6 @@ function enter(event) {
 
     } else if (data.state === "waiting" && (data.type === "new_player" || data.type === "player_left")) {
       room.players = data.players
-      myUid = data.uid
       if (data.type === "player_left" && room.players.length === 1) {
         left_time = 20
       }
@@ -155,6 +153,7 @@ function enter(event) {
       renderComponent(waitingChattingPage, false)
       if (left_time === 0) {
         ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }))
+
         router.link("/game")
       }
 
@@ -163,7 +162,6 @@ function enter(event) {
 
     } else if (data.type === "chat") {
       let is_mine = data.nickname === nickname
-      console.log(data.nickname, nickname)
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
       renderComponent(waitingChattingPage, false);
     }
@@ -172,7 +170,7 @@ function enter(event) {
       renderComponent(Game)
     }
     if (data.type === "player_moveng") {
-      console.log(data);
+      moveOtherPlayer(data);
     }
   };
 
@@ -259,6 +257,7 @@ function CurrPlayer(defPos) {
   let currentDirection = "idle";
   let isMoving = false;
   let lastDirection = "down";
+  let lastClass = ""
 
   function initGame() {
     currPlayer = document.getElementById("current-player");
@@ -304,15 +303,18 @@ function CurrPlayer(defPos) {
     if (state === "idle") {
       if (direction) {
         currPlayer.classList.add(`idle-${direction}`);
+        lastClass = `idle-${direction}`
         lastDirection = direction;
       } else {
         currPlayer.classList.add(`idle-${lastDirection}`);
+        lastClass = `idle-${lastDirection}`
       }
 
       currentDirection = "idle";
 
     } else {
       currPlayer.classList.add(direction);
+      lastClass = direction
       lastDirection = direction;
       currentDirection = direction;
     }
@@ -469,11 +471,16 @@ function CurrPlayer(defPos) {
           type: "player_moveng",
           xPos: xPos,
           yPos: yPos,
-          direction: direction,
-        }))
-
+          direction: lastClass,
+        }));
       } else if (isMoving) {
         updatePlayerState("idle", lastDirection);
+        ws.send(JSON.stringify({
+          type: "player_moveng",
+          xPos: xPos,
+          yPos: yPos,
+          direction: lastClass,
+        }));
       }
 
       isMoving = moved;
@@ -497,7 +504,7 @@ function CurrPlayer(defPos) {
 }
 
 
-function OtherPlayer(uid, initialPos = [0, 0]) {
+function OtherPlayer(nam, initialPos = [0, 0]) {
   let playerEl;
   let xPos = 0;
   let yPos = 0;
@@ -511,41 +518,14 @@ function OtherPlayer(uid, initialPos = [0, 0]) {
   let speedY
 
   function initPlayer() {
-    playerEl = document.getElementById(`other-player-${uid}`)
-    const tileEl = document.querySelector(`[data-row="${initialPos[0]}"][data-col="${initialPos[1]}"]`);
-    console.log(tileEl);
-
-    if (tileEl) {
-      const tileRect = tileEl.getBoundingClientRect();
-      tileWidth = Math.round(tileRect.width);
-      tileHeight = Math.round(tileRect.height);
-      xPos = tileRect.left + 2.5;
-      yPos = tileRect.top + 2.5;
-
-      playerWidth = tileWidth - 5;
-      playerHeight = tileHeight - 5;
-
-      playerEl.style.width = `${playerWidth}px`;
-      playerEl.style.height = `${playerHeight}px`;
-
-      const scale = playerHeight / 32;
-      playerEl.style.setProperty('--sprite-width', `${32 * scale}px`);
-      playerEl.style.setProperty('--sprite-height', `${32 * scale}px`);
-      playerEl.style.setProperty('--sprite-sheet-width', `${128 * scale}px`);
-
-      playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
-    }
-  }
-
-  function initPlayer2() {
-    playerEl = document.getElementById(`other-player-${uid}`)
+    playerEl = document.getElementById(`other-player-${nam}`)
     const tileElement = document.querySelector(`[data-row="${initialPos[0]}"][data-col="${initialPos[1]}"]`);
     if (!tileElement) {
       updateDebugInfo({ "Error": "Could not find initial tile for positioning" });
       return;
     }
-    console.log(tileElement);
-    console.log(playerEl);
+    // console.log(tileElement);
+    // console.log(playerEl);
 
     const tileRect = tileElement.getBoundingClientRect();
     tileWidth = Math.round(tileRect.width);
@@ -571,16 +551,24 @@ function OtherPlayer(uid, initialPos = [0, 0]) {
     }
   }
 
-  setTimeout(initPlayer2, 10);
+  setTimeout(initPlayer, 10);
 
   return vdm("div", {
-    id: `other-player-${uid}`,
+    id: `other-player-${nam}`,
     class: "other-player idle-down",
     style: "position: absolute;"
-  });
+  }, vdm("div", { class: "name_up_player" }, nam));
 }
 
+function moveOtherPlayer(data) {
+  const playerEl = document.getElementById(`other-player-${data.nickname}`);
+  if (!playerEl) return;
 
+  console.log(data);
+  playerEl.style.transform = `translate(${data.xPos}px, ${data.yPos}px)`;
+  playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
+  playerEl.classList.add(data.direction)
+}
 
 router
   .add("/", NewUserPage)

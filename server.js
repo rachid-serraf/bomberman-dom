@@ -3,9 +3,17 @@ import { WebSocketServer, WebSocket } from "ws";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { dirname, join } from 'path';
+import { dirname } from 'path';
 
-
+const CONFIG = {
+  DEF_POS: {
+    0: [1, 1],
+    1: [1, 13],
+    2: [9, 1],
+    3: [9, 13],
+  },
+  WITE_TIME: 1
+}
 const server = http.createServer(handleRequest);
 
 const wss = new WebSocketServer({ server });
@@ -18,7 +26,6 @@ const routes = {
   DELETE: {},
 };
 
-const witeTime = 1; // seconds
 
 const mimeTypes = {
   '.html': 'text/html',
@@ -81,49 +88,33 @@ let rooms = {
   // },
 };
 
-// let player = {
-//   id: "asdasdasd",
-//   nickname: "asda",
-//   direction: "adasd",
-//   x: 41,
-//   y:54,
-// }
-const players = new Map()
-function PrintClient() {
-  for (let [key, value] of clients) {
-    console.log(key, "=>", value.nickname, " / ", value.roomID);
-  }
-  console.log("-----------------------------------");
-}
-
 wss.on("connection", (ws) => {
   let nickname = null;
   let roomID = null;
-  let uid = null
+
   // Handle nickname input (sent by the client)
   ws.on("message", (message) => {
     const data = JSON.parse(message);
+
     const WsHandelType = {
+
       "set_nickname": function () {
         nickname = data.nickname;
         ws.nickname = nickname;
-        uid = uuid()
-        ws.uid = uid
+
         // Check for available room or create a new room
-        roomID = findAvailableRoom();
+        roomID = findAvailableRoom(nickname);
         if (!roomID) {
           console.log("create room")
           roomID = `room-${Date.now()}`;
           rooms[roomID] = {
             players: [nickname],
-            uids: [uid],
             state: "waiting",
-            timer: witeTime,
+            timer: CONFIG.WITE_TIME,
             usersConnection: new Map(),
           };
         } else {
           rooms[roomID].players.push(nickname);
-          rooms[roomID].uids.push(uid);
           if (rooms[roomID].players.length === 4) {
             rooms[roomID].state = "locked"; // Room is locked when full
           }
@@ -131,8 +122,6 @@ wss.on("connection", (ws) => {
         ws.roomID = roomID;
         rooms[roomID].usersConnection.set(ws, nickname);
 
-        // clients.set(uuid(), ws)
-        // PrintClient()
         // need more logic
         // for player if he exit
         if (rooms[roomID].players.length === 2) {
@@ -152,10 +141,10 @@ wss.on("connection", (ws) => {
         broadcastToRoom(roomID, {
           type: "new_player",
           nickname: nickname,
-          uid: uid,
           players: rooms[roomID].players,
           state: rooms[roomID].state,
         });
+
       },
       "chat": function () {
         broadcastToRoom(roomID, {
@@ -182,12 +171,7 @@ wss.on("connection", (ws) => {
           [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
           [7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9],
         ];
-        let defaultPosit = {
-          0: [1, 1],
-          1: [1, 13],
-          2: [9, 1],
-          3: [9, 13],
-        }
+
         function mpbuild() {
           for (let row = 0; row < map.length; row++) {
             for (let col = 0; col < map[row].length; col++) {
@@ -217,16 +201,15 @@ wss.on("connection", (ws) => {
           }
         }
         mpbuild()
-        // let ids = findClinetInRoom(roomID)
+        let playersPos = {}
+        let pl = rooms[roomID].players
+        for (let i = 0; i < pl.length; i++) {
+          playersPos[pl[i]] = CONFIG.DEF_POS[i]
+        }
 
         broadcastToRoom(roomID, {
           type: "map_Generet",
-          players: {
-            [rooms[roomID].uids[0]]: defaultPosit[0],
-            [rooms[roomID].uids[1]]: defaultPosit[1],
-            [rooms[roomID].uids[2] ?? "unknow"]: defaultPosit[2],
-            [rooms[roomID].uids[3] ?? "unknow"]: defaultPosit[3],
-          },
+          players: playersPos,
           map: map,
           rows: rows,
           columns: columns,
@@ -234,6 +217,7 @@ wss.on("connection", (ws) => {
         })
       },
       "player_moveng": function () {
+        data.nickname = nickname
         broadcastToRoom(roomID, data, nickname)
       }
     }
@@ -268,33 +252,25 @@ wss.on("connection", (ws) => {
   });
 });
 
-
-function findClinetInRoom(rID) {
-  let res = []
-  for (let [key, value] of clients) {
-    if (value.roomID === rID) {
-      res.push(key)
-    }
-  }
-  return res
-}
 // Helper function to find an available room
-function findAvailableRoom() {
+function findAvailableRoom(nickname) {
   for (let id in rooms) {
-    if (rooms[id].state === "waiting" && rooms[id].players.length < 4) {
+    if (rooms[id].state === "waiting" && rooms[id].players.length < 4 && !([...rooms[id].usersConnection.values()].includes(nickname))) {
       return id; // Return room ID if there is space
     }
   }
   return null; // Return null if no available room
 }
 
-function broadcastToRoom(roomID, message) {
+function broadcastToRoom(roomID, message, nickname) {
   const room = rooms[roomID];
   if (!room) return;
 
   for (let [ws, username] of room.usersConnection.entries()) {
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message));
+    if (!nickname || nickname !== username) {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(message));
+      }
     }
   }
 }
@@ -322,13 +298,6 @@ function startRoomCountdown(roomID) {
     }
   }, 1000);
   rooms[roomID].countdownInterval = countdownInterval;
-}
-
-function uuid() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
 }
 
 // Make the server listen on port 5000

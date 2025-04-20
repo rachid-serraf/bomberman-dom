@@ -196,3 +196,10 @@ body {
   background-image: url('Assets/character/walk-front.png');
   animation: none;
 }
+
+.name_up_player {
+  transform: translate(0, -20px);
+  background-color: oldlace;
+  text-align: center;
+  border-radius: 19px;
+}
