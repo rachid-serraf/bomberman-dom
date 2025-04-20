@@ -152,6 +152,7 @@ wss.on("connection", (ws) => {
         broadcastToRoom(roomID, {
           type: "new_player",
           nickname: nickname,
+          uid: uid,
           players: rooms[roomID].players,
           state: rooms[roomID].state,
         });
@@ -249,7 +250,7 @@ wss.on("connection", (ws) => {
         room.players = room.players.filter((player) => player !== nickname);
         if (room.players.length === 0) {
           delete rooms[roomID]; // Remove room if no players left
-        } else { 
+        } else {
           broadcastToRoom(roomID, {
             type: "player_left",
             nickname: nickname,

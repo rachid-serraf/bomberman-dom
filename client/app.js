@@ -83,15 +83,22 @@ function Game() {
     container.style.gridTemplateRows = `repeat(${MapState.rows}, ${tileSize}px)`;
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${tileSize}px)`;
   }
-
-  let players = []
-  for (let [key, val] of Object.entries(MapState.players)) {
-    if (key !== "unknow") {
-      players.push(() => CurrPlayer(val))
+  let players = [];
+  for (let [uid, position] of Object.entries(MapState.players)) {
+    if (uid === myUid) {
+      players.push(() => CurrPlayer(position));
+    } else {
+      players.push(() => OtherPlayer(uid, position));
     }
   }
 
-  return vdm("div", {}, vdm("div", { id: "game-container", ref: contanerRef }, ...draw()), CurrPlayer([1,1]))
+
+  return vdm(
+    "div",
+    {},
+    vdm("div", { id: "game-container", ref: contanerRef }, ...draw()),
+    ...players.map(fn => fn())  
+  );
 }
 
 // -------------------------- yassine -----------------------------------------
@@ -99,7 +106,7 @@ let ws
 let room = {}
 let left_time = 20
 let nickname
-let uid = ""
+let myUid = ""
 let messages = []
 function sendMessage(e) {
   e.preventDefault();
@@ -137,8 +144,7 @@ function enter(event) {
 
     } else if (data.state === "waiting" && (data.type === "new_player" || data.type === "player_left")) {
       room.players = data.players
-      console.log(data);
-      
+      myUid = data.uid
       if (data.type === "player_left" && room.players.length === 1) {
         left_time = 20
       }
