@@ -1,4 +1,3 @@
-import { log } from "console";
 import { waitingChattingPage } from "./htmls.js";
 import { EventSystem, Router, setRoot } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
@@ -475,6 +474,8 @@ function CurrPlayer(defPos) {
       }
       function sendPosition() {
         ws.send(JSON.stringify({
+          canX: newXPos !== xPos && canMove(newXPos, yPos),
+          canY: newYPos !== yPos && canMove(xPos, newYPos),
           type: "player_moveng",
           xPos: xPos,
           yPos: yPos,
@@ -502,7 +503,7 @@ function CurrPlayer(defPos) {
   });
 }
 
-
+let playersP = {}
 function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
   let playerEl;
   let tileWidth = 32;
@@ -515,27 +516,33 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
     move()
     return
   }
-  console.log(speedX, speedY);
 
   function move() {
-    if (direction === "top") {
-      newYPos -= speedY;
-    } else if (direction === "down") {
-      newYPos += speedY;
+    console.log(playersP[data.nickname].xlast, data.xPos);
+
+    if (playersP[data.nickname].xlast !== data.xPos) {
+      if (data.direction === "top") {
+        playersP[data.nickname].ypos -= speedY;
+      } else if (data.direction === "down") {
+        playersP[data.nickname].ypos += speedY;
+      }
+    }
+    if (playersP[data.nickname].ylast !== data.yPos) {
+
+      if (data.direction === "left") {
+        playersP[data.nickname].xpos -= speedX;
+      } else if (data.direction === "right") {
+        playersP[data.nickname].xpos += speedX;
+      }
     }
 
-    if (direction === "left") {
-      newXPos -= speedX;
-    } else if (direction === "right") {
-      newXPos += speedX;
-    }
-
-    console.log(data);
+    playersP[data.nickname].xlast = data.xPos
+    playersP[data.nickname].ylast = data.yPos
 
     const playerEl = document.getElementById(`other-player-${data.nickname}`);
     if (!playerEl) return;
 
-    playerEl.style.transform = `translate(${data.xPos}px, ${data.yPos}px)`;
+    playerEl.style.transform = `translate(${playersP[data.nickname].xpos}px, ${playersP[data.nickname].ypos}px)`;
     playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
     playerEl.classList.add(data.direction)
   }
@@ -547,8 +554,6 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
     if (!tileElement) {
       return;
     }
-    // console.log(tileElement);
-    // console.log(playerEl);
 
     const tileRect = tileElement.getBoundingClientRect();
     tileWidth = Math.round(tileRect.width);
@@ -557,13 +562,17 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
     playerHeight = tileHeight - 5;
     speedX = Math.max(1, Math.floor(tileWidth / 20));
     speedY = Math.max(1, Math.floor(tileHeight / 20));
+    playersP[nam] = {}
+    playersP[nam].xpos = 0
+    playersP[nam].ypos = 0
+    playersP[nam].xlast = 0
+    playersP[nam].ylast = 0
 
     if (playerEl) {
       playerEl.style.width = `${playerWidth}px`;
       playerEl.style.height = `${playerHeight}px`;
       playerEl.style.top = `${tileRect.top + 2.5}px`;
       playerEl.style.left = `${tileRect.left + 2.5}px`;
-
 
       const spriteScaleFactor = playerHeight / 32;
 
@@ -573,6 +582,7 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
 
     }
   }
+
 
   setTimeout(initPlayer, 10);
 
