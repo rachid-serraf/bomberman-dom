@@ -99,6 +99,7 @@ let ws
 let room = {}
 let left_time = 20
 let nickname
+let uid = ""
 let messages = []
 function sendMessage(e) {
   e.preventDefault();
@@ -136,6 +137,8 @@ function enter(event) {
 
     } else if (data.state === "waiting" && (data.type === "new_player" || data.type === "player_left")) {
       room.players = data.players
+      console.log(data);
+      
       if (data.type === "player_left" && room.players.length === 1) {
         left_time = 20
       }
@@ -485,6 +488,86 @@ function CurrPlayer(defPos) {
     class: "current-player idle-down" // default state
   });
 }
+
+
+function OtherPlayer(uid, initialPos = [0, 0]) {
+  let playerEl;
+  let xPos = 0;
+  let yPos = 0;
+  let tileWidth = 32;
+  let tileHeight = 32;
+  let playerWidth = 32;
+  let playerHeight = 32;
+  let currentDirection = "down";
+  let animationFrameId;
+
+  function initPlayer() {
+    const tileEl = document.querySelector(`[data-row="${initialPos[0]}"][data-col="${initialPos[1]}"]`);
+    if (tileEl) {
+      const tileRect = tileEl.getBoundingClientRect();
+      tileWidth = Math.round(tileRect.width);
+      tileHeight = Math.round(tileRect.height);
+      xPos = tileRect.left + 2.5;
+      yPos = tileRect.top + 2.5;
+
+      playerWidth = tileWidth - 5;
+      playerHeight = tileHeight - 5;
+
+      playerEl.style.width = `${playerWidth}px`;
+      playerEl.style.height = `${playerHeight}px`;
+
+      const scale = playerHeight / 32;
+      playerEl.style.setProperty('--sprite-width', `${32 * scale}px`);
+      playerEl.style.setProperty('--sprite-height', `${32 * scale}px`);
+      playerEl.style.setProperty('--sprite-sheet-width', `${128 * scale}px`);
+
+      playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
+    }
+  }
+
+  function updateDirection(dir) {
+    playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
+
+    if (dir) {
+      playerEl.classList.add(dir);
+      currentDirection = dir;
+    } else {
+      playerEl.classList.add(`idle-${currentDirection}`);
+    }
+  }
+
+  function handleWsUpdate(data) {
+    if (data.uid !== uid) return;
+
+    xPos = data.xPos;
+    yPos = data.yPos;
+    updateDirection(data.direction || "idle");
+
+    playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
+  }
+
+  // Add the handler
+  if (!window._otherPlayerListeners) window._otherPlayerListeners = {};
+  if (!window._otherPlayerListeners[uid]) {
+    ws.addEventListener("message", (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === "player_moveng") {
+        handleWsUpdate(data);
+      }
+    });
+    window._otherPlayerListeners[uid] = true;
+  }
+
+  setTimeout(initPlayer, 10);
+
+  return vdm("div", {
+    id: `other-player-${uid}`,
+    class: "other-player idle-down",
+    style: "position: absolute;"
+  });
+}
+
+
 
 router
   .add("/", NewUserPage)
