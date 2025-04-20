@@ -1,3 +1,4 @@
+import { log } from "console";
 import { waitingChattingPage } from "./htmls.js";
 import { EventSystem, Router, setRoot } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
@@ -7,6 +8,7 @@ setRoot("app")
 const router = new Router(renderComponent)
 export { room, left_time, sendMessage, messages }
 let MapState = null;
+
 function createDebugPanel() {
   const debugPanel = document.createElement('div');
   debugPanel.id = 'debug-panel';
@@ -85,11 +87,10 @@ function Game() {
   console.log(MapState);
 
   for (let [nam, position] of Object.entries(MapState.players)) {
-    if (nam === "undefined") continue;
     if (nam === nickname) {
       players.push(() => CurrPlayer(position));
     } else {
-      players.push(() => OtherPlayer(nam, position));
+      players.push(() => SetOtherPlayerAndMove(false, null, nam, position));
     }
   }
 
@@ -129,7 +130,7 @@ function enter(event) {
     alert("Nickname must be 2 characters or more.");
     return;
   }
-  ws = new WebSocket("ws://localhost:8080");
+  ws = new WebSocket("ws://10.1.13.5:8080");
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {
@@ -170,7 +171,7 @@ function enter(event) {
       renderComponent(Game)
     }
     if (data.type === "player_moveng") {
-      moveOtherPlayer(data);
+      SetOtherPlayerAndMove(true, data);
     }
   };
 
@@ -467,22 +468,20 @@ function CurrPlayer(defPos) {
           updatePlayerState("moving", direction);
         }
 
-        ws.send(JSON.stringify({
-          type: "player_moveng",
-          xPos: xPos,
-          yPos: yPos,
-          direction: lastClass,
-        }));
+        sendPosition()
       } else if (isMoving) {
         updatePlayerState("idle", lastDirection);
+        sendPosition()
+      }
+      function sendPosition() {
         ws.send(JSON.stringify({
           type: "player_moveng",
           xPos: xPos,
           yPos: yPos,
           direction: lastClass,
+          moved: moved,
         }));
       }
-
       isMoving = moved;
 
       if (newXPos !== xPos && canMove(newXPos, yPos)) xPos = newXPos;
@@ -504,24 +503,48 @@ function CurrPlayer(defPos) {
 }
 
 
-function OtherPlayer(nam, initialPos = [0, 0]) {
+function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
   let playerEl;
-  let xPos = 0;
-  let yPos = 0;
   let tileWidth = 32;
   let tileHeight = 32;
   let playerWidth = 32;
   let playerHeight = 32;
-  let currentDirection = "down";
-  let animationFrameId;
-  let speedX
-  let speedY
+  let speedX = 1
+  let speedY = 1
+  if (isMove) {
+    move()
+    return
+  }
+  console.log(speedX, speedY);
+
+  function move() {
+    if (direction === "top") {
+      newYPos -= speedY;
+    } else if (direction === "down") {
+      newYPos += speedY;
+    }
+
+    if (direction === "left") {
+      newXPos -= speedX;
+    } else if (direction === "right") {
+      newXPos += speedX;
+    }
+
+    console.log(data);
+
+    const playerEl = document.getElementById(`other-player-${data.nickname}`);
+    if (!playerEl) return;
+
+    playerEl.style.transform = `translate(${data.xPos}px, ${data.yPos}px)`;
+    playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
+    playerEl.classList.add(data.direction)
+  }
+
 
   function initPlayer() {
     playerEl = document.getElementById(`other-player-${nam}`)
     const tileElement = document.querySelector(`[data-row="${initialPos[0]}"][data-col="${initialPos[1]}"]`);
     if (!tileElement) {
-      updateDebugInfo({ "Error": "Could not find initial tile for positioning" });
       return;
     }
     // console.log(tileElement);
@@ -532,8 +555,8 @@ function OtherPlayer(nam, initialPos = [0, 0]) {
     tileHeight = Math.round(tileRect.height);
     playerWidth = tileWidth - 5;
     playerHeight = tileHeight - 5;
-    // speedX = Math.max(1, Math.floor(tileWidth / 20));
-    // speedY = Math.max(1, Math.floor(tileHeight / 20));
+    speedX = Math.max(1, Math.floor(tileWidth / 20));
+    speedY = Math.max(1, Math.floor(tileHeight / 20));
 
     if (playerEl) {
       playerEl.style.width = `${playerWidth}px`;
@@ -560,15 +583,7 @@ function OtherPlayer(nam, initialPos = [0, 0]) {
   }, vdm("div", { class: "name_up_player" }, nam));
 }
 
-function moveOtherPlayer(data) {
-  const playerEl = document.getElementById(`other-player-${data.nickname}`);
-  if (!playerEl) return;
 
-  console.log(data);
-  playerEl.style.transform = `translate(${data.xPos}px, ${data.yPos}px)`;
-  playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
-  playerEl.classList.add(data.direction)
-}
 
 router
   .add("/", NewUserPage)
