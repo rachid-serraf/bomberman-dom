@@ -7,6 +7,7 @@ setRoot("app")
 const router = new Router(renderComponent)
 export { room, left_time, sendMessage, messages }
 let MapState = null;
+let tileSize = null
 
 function createDebugPanel() {
   const debugPanel = document.createElement('div');
@@ -74,7 +75,7 @@ function Game() {
     const containerWidth = window.innerWidth
     const containerHeight = window.innerHeight;
 
-    const tileSize = Math.min(
+    tileSize = Math.min(
       containerWidth / MapState.columns,
       containerHeight / MapState.rows
     );
@@ -223,7 +224,8 @@ function EmotesCat(emoteNumber, message, random = true) {
     }
     emoteNumber = Math.round(Math.random() * (13 - 1) + 1);
   }
-  setanime()
+  // setanime()
+
   if (random) setInterval(() => setanime(), 5000);
 
   return (
@@ -243,7 +245,7 @@ function backToHome(path) {
 
 let xPos = 0;
 let yPos = 0;
-function CurrPlayer(defPos) {
+function CurrPlayer(pos = [1, 1]) {
   let currPlayer;
   let keysPressed = {};
   let animationFrameId;
@@ -257,28 +259,40 @@ function CurrPlayer(defPos) {
   let currentDirection = "idle";
   let isMoving = false;
   let lastDirection = "down";
+  let skipCorner = { x: 0, y: 0 };
+  let bombPower = 3;
   let lastClass = ""
 
   function initGame() {
     currPlayer = document.getElementById("current-player");
-    const tileElement = document.querySelector(`[data-row="${defPos[0]}"][data-col="${defPos[1]}"]`);
+    const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
+    const tileRectInit = tileElementInit.getBoundingClientRect();
+    const tileElement = document.querySelector(`[data-row="${pos[0]}"][data-col="${pos[1]}"]`);
     if (!tileElement) {
       updateDebugInfo({ "Error": "Could not find initial tile for positioning" });
       return;
     }
     const tileRect = tileElement.getBoundingClientRect();
+    // debugInfo["Tile Rect"] = `Top: ${tileRect.top}, Left: ${tileRect.left}, Width: ${tileRect.width}, Height: ${tileRect.height}`;
     tileWidth = Math.round(tileRect.width);
     tileHeight = Math.round(tileRect.height);
-    playerWidth = tileWidth - 5;
-    playerHeight = tileHeight - 5;
-    speedX = Math.max(1, Math.floor(tileWidth / 20));
-    speedY = Math.max(1, Math.floor(tileHeight / 20));
+    playerWidth = tileWidth - 3;
+    playerHeight = tileHeight - 3;
+    speedX = Math.max(1, Math.floor(tileWidth / 15));
+    speedY = Math.max(1, Math.floor(tileHeight / 15));
+
 
     if (currPlayer) {
       currPlayer.style.width = `${playerWidth}px`;
       currPlayer.style.height = `${playerHeight}px`;
-      currPlayer.style.top = `${tileRect.top + 2.5}px`;
-      currPlayer.style.left = `${tileRect.left + 2.5}px`;
+      currPlayer.style.top = `${tileRectInit.top}px`;
+      currPlayer.style.left = `${tileRectInit.left}px`;
+
+      xPos = Math.round(tileRect.left - tileRectInit.right + playerWidth)
+      yPos = Math.round(tileRect.top - tileRectInit.bottom + playerHeight)
+      xPos < 0 ? xPos = 0 : xPos
+      yPos < 0 ? yPos = 0 : yPos
+      // console.log(xPos, yPos);
 
 
       const spriteScaleFactor = playerHeight / 32;
@@ -340,7 +354,6 @@ function CurrPlayer(defPos) {
       const exists = uniqueTiles.some(tile =>
         tile.gridX === pos.gridX && tile.gridY === pos.gridY
       );
-
       if (!exists) {
         uniqueTiles.push(pos);
       }
@@ -353,6 +366,8 @@ function CurrPlayer(defPos) {
   }
 
   function getTileInfo(gridX, gridY) {
+    // console.log(gridX, gridY);
+
     const tileElement = document.querySelector(
       `[data-row="${gridY + 1}"][data-col="${gridX + 1}"]`
     );
@@ -362,63 +377,95 @@ function CurrPlayer(defPos) {
     };
   }
 
-  function getPlayerGrid() {
-    return {
-      x: Math.round(xPos / tileWidth) + 1,
-      y: Math.round(yPos / tileHeight) + 1,
-    }
-  }
-
   function checkCorners(corners) {
-    // const tileInfo = getTileInfo(y, x)
-    // console.log(y, x, corners[0]);
     let cornerTiles = getPlayerTiles(corners[0].x, corners[0].y);
-    // console.log(cornerTiles);
-    for (let index = 0; index < cornerTiles.corners.length; index++) {
-      // console.log(cornerTiles.corners[index]);
-    }
-    debugInfo["corners--"] = cornerTiles.corners.map(corner => `(${corner.x}, ${corner.y})`).join(", ");
-    let playerGrid = getPlayerGrid();
-    // debugInfo["currentTiles"] = cornerTiles.uniqueTiles.map(tile => `(${tile.gridX + 1}, ${tile.gridY + 1})`).join(", ");
-    debugInfo["Player Cordination"] = `X: ${playerGrid.x}, Y: ${playerGrid.y}`;
-    // console.log(cornerTiles.uniqueTiles);
-    for (let index = 0; index < cornerTiles.uniqueTiles.length; index++) {
-      // console.log(cornerTiles.uniqueTiles[index]);
-    }
     let cornerTilesBool = cornerTiles.uniqueTiles.map(
       tile => getTileInfo(tile.gridX, tile.gridY)
     );
+    let index = 0;
+    let cal = 0;
+    if (cornerTilesBool.length < 4) {
+      debugInfo["cornerTilesBool"] = ''
+      return {
+        index: -1,
+      };
+    }
 
+    else {
+      for (let idx = 0; idx < cornerTilesBool.length; idx++) {
+        if (!cornerTilesBool[idx].walkable) {
+          cal++;
+          if (cal > 1) {
+            return {
+              index: -1,
+            }
+          }
+          index = idx;
+        }
+      }
+    }
     debugInfo["cornerTilesBool"] = cornerTilesBool.map(info => info.walkable).join(", ");
-    // debugInfo["cornerTilesBool"] = cornerTiles.uniqueTiles.map(tile => `(${tile.gridY + 1}, ${tile.gridX + 1})`).join(", ");
-    // debugInfo["cornerTilesBool"] = tileInfo.map(info => info.walkable).join(", ");
-    // const tileValue = getPlayerTiles(y, x)
-    // debugInfo["cornerTilesValues"] = tileValue.map(info => info.uniqueTiles.map(tile => `(${tile.gridY + 1}, ${tile.gridX + 1})`).join(", ")).join(", ");
+    return {
+      skipCorner,
+      index,
+    }
   }
 
   function canMove(newX, newY) {
+    let turnToDirection = {
+      canMove: false,
+      index: -1,
+    };
     const tiles = getPlayerTiles(newX, newY);
     debugInfo["tiles"] = tiles.uniqueTiles.map(tile => `(${tile.gridX + 1}, ${tile.gridY + 1})`).join(", ");
     tiles.uniqueTiles.forEach((tile, index) => {
       const tileInfo = getTileInfo(tile.gridX, tile.gridY);
-      // console.log(tile.gridX, tile.gridY);
-
       debugInfo[`Tile ${index + 1}`] =
         `(${tile.gridX + 1}, ${tile.gridY + 1}) - Type: ${tileInfo.id || 'unknown'} - ${tileInfo.walkable ? 'walkable' : 'blocked'}`;
     });
     const canMove = tiles.uniqueTiles.every(tile => {
       const tileInfo = getTileInfo(tile.gridX, tile.gridY);
       if (tileInfo.walkable === false) {
-        // console.log(tiles.corners);
-        checkCorners(tiles.corners);
+        turnToDirection = checkCorners(tiles.corners);
       }
       return tileInfo.walkable;
     });
+    turnToDirection.canMove = canMove;
     debugInfo["Can Move"] = canMove ? "Yes" : "No";
-
-    return canMove;
+    return turnToDirection;
   }
 
+  function updateCornering(result) {
+    const { index } = result;
+    if (index === 0) {
+      if (lastDirection === "left") {
+        yPos += speedY
+      } else if (lastDirection === "top") {
+        xPos += speedX
+      }
+    }
+    else if (index === 1) {
+      if (lastDirection === "right") {
+        yPos += speedY
+      } else if (lastDirection === "top") {
+        xPos -= speedX
+      }
+    }
+    else if (index === 2) {
+      if (lastDirection === "left") {
+        yPos -= speedY
+      } else if (lastDirection === "down") {
+        xPos += speedX
+      }
+    }
+    else if (index === 3) {
+      if (lastDirection === "right") {
+        yPos -= speedY
+      } else if (lastDirection === "down") {
+        xPos -= speedX
+      }
+    }
+  }
   function updateDebugWithTiles() {
     const tiles = getPlayerTiles(xPos, yPos);
 
@@ -436,13 +483,129 @@ function CurrPlayer(defPos) {
     updateDebugInfo(debugInfo);
   }
 
+  function explosionEffect(top, left) {
+    const explosion = document.createElement("div");
+    explosion.classList.add("explosion");
+    let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
+    let [fpvx, fnvx, fpvy, fnvy] = [false, false, false, false];
+    for (let index = 1; index < bombPower; index++) {
+      if (fpvx === false) {
+        tileElementPositiveVx = document.querySelector(
+          `[data-row="${top}"][data-col="${left + index}"]`
+        );
+        console.log(tileElementPositiveVx.id);
+        if (tileElementPositiveVx.id === 'toba' || tileElementPositiveVx.id === 'right' || tileElementPositiveVx.id === 'top' || tileElementPositiveVx.id === 'left' || tileElementPositiveVx.id === 'tree' || tileElementPositiveVx.id === 'down') fpvx = true;
+      }
+      if (fnvx === false) {
+        tileElementNegativeVx = document.querySelector(
+          `[data-row="${top}"][data-col="${left + (-index)}"]`
+        );
+        if (tileElementNegativeVx.id === 'toba' || tileElementNegativeVx.id === 'right' || tileElementNegativeVx.id === 'top' || tileElementNegativeVx.id === 'left' || tileElementNegativeVx.id === 'tree' || tileElementNegativeVx.id === 'down') fnvx = true;
+      }
+      if (fpvy === false) {
+        tileElementPositiveVy = document.querySelector(
+          `[data-row="${top + index}"][data-col="${left}"]`
+        );
+        if (tileElementPositiveVy.id === 'toba' || tileElementPositiveVy.id === 'right' || tileElementPositiveVy.id === 'top' || tileElementPositiveVy.id === 'left' || tileElementPositiveVy.id === 'tree' || tileElementPositiveVy.id === 'down') fpvy = true;
+      }
+      if (fnvy === false) {
+        tileElementNegativeVy = document.querySelector(
+          `[data-row="${top + (-index)}"][data-col="${left}"]`
+        );
+        if (tileElementNegativeVy.id === 'toba' || tileElementNegativeVy.id === 'right' || tileElementNegativeVy.id === 'top' || tileElementNegativeVy.id === 'left' || tileElementNegativeVy.id === 'tree' || tileElementNegativeVy.id === 'down') fnvy = true;
+      }
+
+      debugInfo["tileElementPositiveVx"] = tileElementPositiveVx.id;
+      debugInfo["tileElementNegativeVx"] = tileElementNegativeVx.id;
+      debugInfo["tileElementPositiveVy"] = tileElementPositiveVy.id;
+      debugInfo["tileElementNegativeVy"] = tileElementNegativeVy.id;
+
+      console.log(tileElementPositiveVx,
+        tileElementNegativeVx,
+        tileElementPositiveVy,
+        tileElementNegativeVy);
+
+      const tileElements = [
+        tileElementPositiveVx,
+        tileElementNegativeVx,
+        tileElementPositiveVy,
+        tileElementNegativeVy
+      ];
+
+      tileElements.forEach(tileElement => {
+        if (tileElement && (tileElement.id === 'grass' || tileElement.id === 'tree')) {
+          const explosionPart = document.createElement("div");
+          explosionPart.classList.add("explosion");
+          const rect = tileElement.getBoundingClientRect();
+          explosionPart.style.top = `${rect.top}px`;
+          explosionPart.style.left = `${rect.left}px`;
+          explosionPart.style.width = `${tileWidth}px`;
+          explosionPart.style.height = `${tileHeight}px`;
+          explosionPart.style.position = "absolute";
+          explosionPart.style.backgroundColor = "red";
+          document.body.appendChild(explosionPart);
+          setTimeout(() => {
+            explosionPart.remove();
+          }, 2000);
+          if (tileElement.id === 'tree') {
+            // removing tree from the grid and the css
+          }
+        }
+      });
+    }
+
+    const tileElement = document.querySelector(
+      `[data-row="${top}"][data-col="${left}"]`
+    );
+    const rect = tileElement.getBoundingClientRect();
+    explosion.style.width = `${tileWidth}px`;
+    explosion.style.height = `${tileHeight}px`;
+    explosion.style.position = "absolute";
+    explosion.style.top = `${rect.top}px`;
+    explosion.style.left = `${rect.left}px`;
+    explosion.style.backgroundColor = "red";
+    document.body.appendChild(explosion);
+
+    setTimeout(() => {
+      explosion.remove();
+    }, 2000);
+  }
+
+  let lastBombTime = 0;
+  const bombCooldown = 4000;
+
+  function placeAbomb() {
+    const bomb = document.createElement("div");
+    bomb.classList.add("bomb");
+    bomb.style.width = `${tileWidth}px`;
+    bomb.style.height = `${tileHeight}px`;
+    bomb.style.position = "absolute";
+    console.log(xPos + tileWidth, yPos + tileHeight);
+
+    const tiles = getPlayerTiles(xPos + (tileWidth / 2), yPos + (tileHeight / 2));
+    // console.log(tiles.uniqueTiles[0].gridY+1, tiles.uniqueTiles[0].gridX+1);
+    const tileElement = document.querySelector(
+      `[data-row="${tiles.uniqueTiles[0].gridY + 1}"][data-col="${tiles.uniqueTiles[0].gridX + 1}"]`
+    );
+
+    const rect = tileElement.getBoundingClientRect();
+    bomb.style.top = `${rect.top}px`;
+    bomb.style.left = `${rect.left}px`;
+    bomb.style.backgroundColor = "red";
+    document.body.appendChild(bomb);
+
+    setTimeout(() => {
+      bomb.remove();
+      explosionEffect(tiles.uniqueTiles[0].gridY + 1, tiles.uniqueTiles[0].gridX + 1);
+    }, 2000);
+  }
+
   function startGameLoop() {
     function gameLoop() {
       let newXPos = xPos;
       let newYPos = yPos;
       let moved = false;
       let direction = lastDirection;
-
       if (keysPressed["ArrowUp"]) {
         newYPos -= speedY;
         direction = "top";
@@ -452,7 +615,6 @@ function CurrPlayer(defPos) {
         direction = "down";
         moved = true;
       }
-
       if (keysPressed["ArrowLeft"]) {
         newXPos -= speedX;
         direction = "left";
@@ -462,11 +624,18 @@ function CurrPlayer(defPos) {
         direction = "right";
         moved = true;
       }
+      if (keysPressed[" "]) {
+        const currentTime = Date.now();
+        if (currentTime - lastBombTime > bombCooldown) {
+          placeAbomb();
+          lastBombTime = currentTime;
+        }
+      }
       if (moved) {
         if (currentDirection !== direction) {
+          // console.log(xPos, yPos);
           updatePlayerState("moving", direction);
         }
-
         sendPosition()
       } else if (isMoving) {
         updatePlayerState("idle", lastDirection);
@@ -474,75 +643,52 @@ function CurrPlayer(defPos) {
       }
       function sendPosition() {
         ws.send(JSON.stringify({
-          canX: newXPos !== xPos && canMove(newXPos, yPos),
-          canY: newYPos !== yPos && canMove(xPos, newYPos),
           type: "player_moveng",
-          xPos: xPos,
-          yPos: yPos,
+          xPos: xPos / tileSize,
+          yPos: yPos / tileSize,
           direction: lastClass,
-          moved: moved,
         }));
       }
+
       isMoving = moved;
-
-      if (newXPos !== xPos && canMove(newXPos, yPos)) xPos = newXPos;
-      if (newYPos !== yPos && canMove(xPos, newYPos)) yPos = newYPos;
-
+      if (newYPos !== yPos && canMove(xPos, newYPos).canMove) yPos = newYPos
+      else if ((canMove(xPos, newYPos).canMove === false)) {
+        updateCornering(canMove(xPos, newYPos));
+      } else if (newXPos !== xPos && canMove(newXPos, yPos).canMove) xPos = newXPos;
+      else if (canMove(newXPos, yPos).canMove === false) {
+        updateCornering(canMove(newXPos, yPos));
+      }
       currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
-
       updateDebugWithTiles();
       animationFrameId = requestAnimationFrame(gameLoop);
     }
     animationFrameId = requestAnimationFrame(gameLoop);
   }
 
-  setTimeout(initGame, 10);
   return vdm("div", {
     id: "current-player",
-    class: "current-player idle-down" // default state
+    class: "current-player idle-down", // default state
+    ref: initGame
   });
 }
 
-let playersP = {}
-function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
+
+function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
   let playerEl;
   let tileWidth = 32;
   let tileHeight = 32;
   let playerWidth = 32;
   let playerHeight = 32;
-  let speedX = 1
-  let speedY = 1
   if (isMove) {
     move()
     return
   }
 
   function move() {
-    console.log(playersP[data.nickname].xlast, data.xPos);
-
-    if (playersP[data.nickname].xlast !== data.xPos) {
-      if (data.direction === "top") {
-        playersP[data.nickname].ypos -= speedY;
-      } else if (data.direction === "down") {
-        playersP[data.nickname].ypos += speedY;
-      }
-    }
-    if (playersP[data.nickname].ylast !== data.yPos) {
-
-      if (data.direction === "left") {
-        playersP[data.nickname].xpos -= speedX;
-      } else if (data.direction === "right") {
-        playersP[data.nickname].xpos += speedX;
-      }
-    }
-
-    playersP[data.nickname].xlast = data.xPos
-    playersP[data.nickname].ylast = data.yPos
-
+    console.log(data);
     const playerEl = document.getElementById(`other-player-${data.nickname}`);
     if (!playerEl) return;
-
-    playerEl.style.transform = `translate(${playersP[data.nickname].xpos}px, ${playersP[data.nickname].ypos}px)`;
+    playerEl.style.transform = `translate(${(data.xPos * tileSize)}px, ${(data.yPos * tileSize)}px)`;
     playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
     playerEl.classList.add(data.direction)
   }
@@ -554,42 +700,39 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [0, 0]) {
     if (!tileElement) {
       return;
     }
-
     const tileRect = tileElement.getBoundingClientRect();
     tileWidth = Math.round(tileRect.width);
     tileHeight = Math.round(tileRect.height);
-    playerWidth = tileWidth - 5;
-    playerHeight = tileHeight - 5;
-    speedX = Math.max(1, Math.floor(tileWidth / 20));
-    speedY = Math.max(1, Math.floor(tileHeight / 20));
-    playersP[nam] = {}
-    playersP[nam].xpos = 0
-    playersP[nam].ypos = 0
-    playersP[nam].xlast = 0
-    playersP[nam].ylast = 0
+    playerWidth = tileWidth - 3;
+    playerHeight = tileHeight - 3;
+
+    const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
+    const tileRectInit = tileElementInit.getBoundingClientRect();
+    let xPos = Math.round(tileRect.left - tileRectInit.right + playerWidth)
+    let yPos = Math.round(tileRect.top - tileRectInit.bottom + playerHeight)
+    xPos < 0 ? xPos = 0 : xPos
+    yPos < 0 ? yPos = 0 : yPos
 
     if (playerEl) {
       playerEl.style.width = `${playerWidth}px`;
       playerEl.style.height = `${playerHeight}px`;
-      playerEl.style.top = `${tileRect.top + 2.5}px`;
-      playerEl.style.left = `${tileRect.left + 2.5}px`;
+      playerEl.style.top = `${tileRectInit.top + 2.5}px`;
+      playerEl.style.left = `${tileRectInit.left + 2.5}px`;
+      playerEl.style.transform = `translate(${(xPos)}px, ${(yPos)}px)`;
 
       const spriteScaleFactor = playerHeight / 32;
 
       playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
       playerEl.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
       playerEl.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
-
     }
   }
-
-
-  setTimeout(initPlayer, 10);
 
   return vdm("div", {
     id: `other-player-${nam}`,
     class: "other-player idle-down",
-    style: "position: absolute;"
+    style: "position: absolute;",
+    ref: initPlayer,
   }, vdm("div", { class: "name_up_player" }, nam));
 }
 

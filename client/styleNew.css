@@ -77,13 +77,13 @@
 .input_name {
   padding: 15px;
   border: none;
-  background-color: var(--tan-2);
-  color: aliceblue;
-  margin-bottom: 30px;
+  background-color: var(--ivory);
+  color: var(--tan-2);
+  margin: 30px 0 30px 0;  
 }
 
 .input_name::placeholder {
-  color: rgb(218, 225, 231);
+  color: var(--tan-2);
 }
 
 .input_name:focus {
@@ -93,8 +93,9 @@
 .btn_add_name{
   padding: 10px;
   margin-bottom: 80px;
-  background-color: var(--ivory);
-  color: #7d5b46;
+  background-color: var(--tan-2);
+  color: aliceblue;
   border-color: var(--tan-2);
+  border: none;
   cursor: url('../Assets/Sprout Lands - Sprites - Basic pack/UI/Sprite sheets/Mouse sprites/pointingMouse.png'), pointer;
 }
