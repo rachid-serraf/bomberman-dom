@@ -280,8 +280,8 @@ function CurrPlayer(pos = [1, 1]) {
 
     playerWidth = tileWidth - diff;
     playerHeight = tileHeight - diff;
-    speedX = Math.max(1, Math.floor(playerWidth / 10));
-    speedY = Math.max(1, Math.floor(playerHeight / 10));
+    speedX = Math.max(1, Math.floor(playerWidth / 20));
+    speedY = Math.max(1, Math.floor(playerHeight / 20));
 
 
     if (currPlayer) {
@@ -599,7 +599,7 @@ function CurrPlayer(pos = [1, 1]) {
     setTimeout(() => {
       bomb.remove();
       explosionEffect(tiles.uniqueTiles[0].gridY + 1, tiles.uniqueTiles[0].gridX + 1);
-    }, 2000);
+    }, 20000);
   }
 
   function startGameLoop() {

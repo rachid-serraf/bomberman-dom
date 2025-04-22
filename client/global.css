@@ -72,7 +72,7 @@ body {
   z-index: 10;
   background-image: url('Assets/character/walk-front.png');
   /* background-image: url('Assets/Sprout Lands - Sprites - Basic pack/Characters/Basic Charakter Spritesheet.png'); */
-  background-repeat: no-repeat;
+  /* background-repeat: no-repeat; */
   background-size: var(--sprite-sheet-width) auto;
   image-rendering: pixelated;
 }
@@ -136,7 +136,7 @@ body {
   z-index: 10;
   background-image: url('Assets/character/walk-front.png');
   /* background-image: url('Assets/Sprout Lands - Sprites - Basic pack/Characters/Basic Charakter Spritesheet.png'); */
-  background-repeat: no-repeat;
+  /* background-repeat: no-repeat; */
   background-size: var(--sprite-sheet-width) auto;
   image-rendering: pixelated;
 }
@@ -203,7 +203,16 @@ body {
 
 .bomb {
   background-image: url('Assets/bomb/dynamite.png');
-  background-repeat: no-repeat;
-  background-size: -32px -32px;
   image-rendering: pixelated;
+  animation: animaBomb 0.5s steps(4) infinite;
+}
+
+@keyframes animaBomb {
+  from {
+    background-position-x: 0;
+  }
+
+  to {
+    background-position-x: calc(-4 * 32px);
+  }
 }
