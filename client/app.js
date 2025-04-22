@@ -25,7 +25,7 @@ function createDebugPanel() {
   debugPanel.style.maxHeight = '150px';
   debugPanel.style.overflow = 'auto';
   debugPanel.style.zIndex = '1000';
-  // document.body.appendChild(debugPanel);
+  document.body.appendChild(debugPanel);
   return debugPanel;
 }
 
@@ -128,7 +128,8 @@ function enter(event) {
     alert("Nickname must be 2 characters or more.");
     return;
   }
-  ws = new WebSocket("ws://10.1.13.5:8080");
+  //"ws://10.1.13.5:8080"
+  ws = new WebSocket("ws://10.1.13.1:8080");
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {
@@ -246,8 +247,8 @@ function CurrPlayer(pos = [1, 1]) {
   let currPlayer;
   let keysPressed = {};
   let animationFrameId;
-  let speedX = 0.5;
-  let speedY = 0.5;
+  let speedX;
+  let speedY;
   let tileWidth = 0;
   let tileHeight = 0;
   let playerWidth = 0;
@@ -273,17 +274,21 @@ function CurrPlayer(pos = [1, 1]) {
     // debugInfo["Tile Rect"] = `Top: ${tileRect.top}, Left: ${tileRect.left}, Width: ${tileRect.width}, Height: ${tileRect.height}`;
     tileWidth = Math.round(tileRect.width);
     tileHeight = Math.round(tileRect.height);
-    playerWidth = tileWidth - 3;
-    playerHeight = tileHeight - 3;
-    speedX = Math.max(1, Math.floor(playerWidth / 20));
-    speedY = Math.max(1, Math.floor(playerHeight / 20));
+
+    let diff = (tileHeight / 100) * 10
+    console.log(diff, tileWidth);
+
+    playerWidth = tileWidth - diff;
+    playerHeight = tileHeight - diff;
+    speedX = Math.max(1, Math.floor(playerWidth / 10));
+    speedY = Math.max(1, Math.floor(playerHeight / 10));
 
 
     if (currPlayer) {
       currPlayer.style.width = `${playerWidth}px`;
       currPlayer.style.height = `${playerHeight}px`;
-      currPlayer.style.top = `${tileRectInit.top + 1.5}px`;
-      currPlayer.style.left = `${tileRectInit.left + 1.5}px`;
+      currPlayer.style.top = `${tileRectInit.top + (diff / 2)}px`;
+      currPlayer.style.left = `${tileRectInit.left + (diff / 2)}px`;
 
       xPos = Math.round(tileRect.left - tileRectInit.right + playerWidth)
       yPos = Math.round(tileRect.top - tileRectInit.bottom + playerHeight)
@@ -700,8 +705,10 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
     const tileRect = tileElement.getBoundingClientRect();
     tileWidth = Math.round(tileRect.width);
     tileHeight = Math.round(tileRect.height);
-    playerWidth = tileWidth - 3;
-    playerHeight = tileHeight - 3;
+    let diff = (tileHeight / 100) * 10
+
+    playerWidth = tileWidth - diff;
+    playerHeight = tileHeight - diff;
 
     const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
     const tileRectInit = tileElementInit.getBoundingClientRect();
@@ -713,8 +720,8 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
     if (playerEl) {
       playerEl.style.width = `${playerWidth}px`;
       playerEl.style.height = `${playerHeight}px`;
-      playerEl.style.top = `${tileRectInit.top + 2.5}px`;
-      playerEl.style.left = `${tileRectInit.left + 2.5}px`;
+      playerEl.style.top = `${tileRectInit.top + (diff / 2)}px`;
+      playerEl.style.left = `${tileRectInit.left + (diff / 2)}px`;
       playerEl.style.transform = `translate(${(xPos)}px, ${(yPos)}px)`;
 
       const spriteScaleFactor = playerHeight / 32;
