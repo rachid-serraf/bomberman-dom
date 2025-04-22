@@ -38,7 +38,6 @@ function updateDebugInfo(info) {
 
 function Game() {
   if (!MapState) return vdm("div", {}, "loding map...")
-
   function draw() {
     let tiles = []
     for (let row = 0; row < MapState.map.length; row++) {
@@ -59,7 +58,6 @@ function Game() {
           12: "box"
         };
         const className = tileClasses[tileValue];
-
         tiles.push(vdm("div", {
           class: `tile ${className ?? ""}`,
           "data-row": `${row}`,
@@ -160,7 +158,6 @@ function enter(event) {
 
     } else if (data.type === "player_left") {
       // Handle player leaving in the game
-
     } else if (data.type === "chat") {
       let is_mine = data.nickname === nickname
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
@@ -278,15 +275,15 @@ function CurrPlayer(pos = [1, 1]) {
     tileHeight = Math.round(tileRect.height);
     playerWidth = tileWidth - 3;
     playerHeight = tileHeight - 3;
-    speedX = Math.max(1, Math.floor(tileWidth / 15));
-    speedY = Math.max(1, Math.floor(tileHeight / 15));
+    speedX = Math.max(1, Math.floor(playerWidth / 20));
+    speedY = Math.max(1, Math.floor(playerHeight / 20));
 
 
     if (currPlayer) {
       currPlayer.style.width = `${playerWidth}px`;
       currPlayer.style.height = `${playerHeight}px`;
-      currPlayer.style.top = `${tileRectInit.top}px`;
-      currPlayer.style.left = `${tileRectInit.left}px`;
+      currPlayer.style.top = `${tileRectInit.top + 1.5}px`;
+      currPlayer.style.left = `${tileRectInit.left + 1.5}px`;
 
       xPos = Math.round(tileRect.left - tileRectInit.right + playerWidth)
       yPos = Math.round(tileRect.top - tileRectInit.bottom + playerHeight)
@@ -591,7 +588,7 @@ function CurrPlayer(pos = [1, 1]) {
     const rect = tileElement.getBoundingClientRect();
     bomb.style.top = `${rect.top}px`;
     bomb.style.left = `${rect.left}px`;
-    bomb.style.backgroundColor = "red";
+    // bomb.style.backgroundColor = "red";
     document.body.appendChild(bomb);
 
     setTimeout(() => {
