@@ -254,6 +254,7 @@ const StateManagementLSG = {
   }
 };
 const StateManagement = {
+
   state: {}, // Initial empty state
   component: null, // Store the component to re-render
 
@@ -262,6 +263,8 @@ const StateManagement = {
   },
 
   set(newState) {
+    console.log("state", state);
+
     if (newState !== this.state) {
       haveNewState = true;
     }
@@ -422,7 +425,7 @@ class Router {
 //   }
 //   const setState = (newValue, component) => {
 //     state[index] = newValue
-//     console.log("setState", component);
+//     console.log("setState", newValue, state[index]);
 
 //     renderComponent(component)
 //   };
@@ -444,6 +447,24 @@ class Router {
 //   effects[effectIndex] = dependencies
 //   effectIndex++
 // }
+let state = [];
+let stateIndex = 0;
+
+export function useState(initialValue) {
+  const index = stateIndex
+  if (!state[index]) {
+    state[index] = initialValue
+  }
+  const setState = (newValue) => {
+    state[index] = newValue
+    console.log(state, currentComponent);
+
+    renderComponent(() => currentComponent)
+  };
+  stateIndex++
+
+  return [state[index], setState]
+}
 
 export {
   vdm,

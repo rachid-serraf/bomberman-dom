@@ -1,4 +1,4 @@
-export { waitingChattingPage };
+export { waitingChattingPage, chatting };
 import { vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
 

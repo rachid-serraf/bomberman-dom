@@ -1,5 +1,5 @@
-import { waitingChattingPage } from "./htmls.js";
-import { EventSystem, Router, setRoot } from "./miniframework.js";
+import { chatting, waitingChattingPage } from "./htmls.js";
+import { EventSystem, Router, setRoot, StateManagement, useState } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
 
@@ -7,7 +7,32 @@ setRoot("app")
 const router = new Router(renderComponent)
 export { room, left_time, sendMessage, messages }
 let MapState = null;
-let tileSize = null
+let tileSize = null;
+
+
+function test() {
+  console.log(EventSystem.events);
+  
+  // const [count, setCount] = useState(0);
+  StateManagement.setComponent(test)
+  // StateManagement.set({ count: 0 })
+  const count = StateManagement.get().count || 0
+
+  // useEffect(() => {
+  //   // console.log("changed", count);
+  // }, [count]);
+
+  return vdm("div", { className: "container" },
+    vdm("h1", {}, "home Component"),
+    vdm("p", {}, `Count: ${count}`),
+    vdm("button", {
+      onClick: () => StateManagement.set({ count: count + 1 })
+    }, "Increment"),
+    vdm("button", { onClick: () => router.link("/about") }, "About")
+  );
+}
+
+
 
 function createDebugPanel() {
   const debugPanel = document.createElement('div');
@@ -746,6 +771,7 @@ router
   .add("/", NewUserPage)
   .add("/waiting", waitingChattingPage)
   .add("/game", Game)
+  .add("/test", test)
 
 router.setNotFound(() =>
   vdm("div", {},

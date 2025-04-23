@@ -12,7 +12,7 @@ const CONFIG = {
     2: [9, 1],
     3: [9, 13],
   },
-  WITE_TIME: 1
+  WITE_TIME: 20
 }
 const server = http.createServer(handleRequest);
 
