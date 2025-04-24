@@ -12,7 +12,7 @@ const CONFIG = {
     2: [9, 1],
     3: [9, 13],
   },
-  WITE_TIME: 20
+  WITE_TIME: 2
 }
 const server = http.createServer(handleRequest);
 
@@ -146,6 +146,7 @@ wss.on("connection", (ws) => {
         });
 
       },
+      //--------------------------------------------------------------------------
       "chat": function () {
         broadcastToRoom(roomID, {
           type: "chat",
@@ -153,6 +154,7 @@ wss.on("connection", (ws) => {
           nickname: nickname,
         });
       },
+      //--------------------------------------------------------------------------
       "creat_map": function () {
         let rows = 11;
         let columns = 15;
@@ -199,6 +201,10 @@ wss.on("connection", (ws) => {
               }
             }
           }
+
+          let a = map.flat().filter(v => v === 10).length;
+
+          console.log(a); // 4 time
         }
         mpbuild()
         let playersPos = {}
@@ -216,7 +222,13 @@ wss.on("connection", (ws) => {
           por: por,
         })
       },
+      //--------------------------------------------------------------------------
       "player_moveng": function () {
+        data.nickname = nickname
+        broadcastToRoom(roomID, data, nickname)
+      },
+      //--------------------------------------------------------------------------
+      "set_bomb": function () {
         data.nickname = nickname
         broadcastToRoom(roomID, data, nickname)
       }
