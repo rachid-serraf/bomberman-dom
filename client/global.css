@@ -135,8 +135,6 @@ body {
   position: absolute;
   z-index: 10;
   background-image: url('Assets/character/walk-front.png');
-  /* background-image: url('Assets/Sprout Lands - Sprites - Basic pack/Characters/Basic Charakter Spritesheet.png'); */
-  /* background-repeat: no-repeat; */
   background-size: var(--sprite-sheet-width) auto;
   image-rendering: pixelated;
 }
