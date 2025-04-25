@@ -521,28 +521,16 @@ function CurrPlayer(pos = [1, 1]) {
             isMoving = moved;
 
             // Store canMove results to avoid multiple calculations with the same parameters
-            let canMoveVertical = null;
-            let canMoveHorizontal = null;
+            // let canMoveVertical = null;
+            // let canMoveHorizontal = null;
 
-            // Check vertical movement first (if there was any)
-            if (newYPos !== yPos) {
-                canMoveVertical = canMove(xPos, newYPos);
-                if (canMoveVertical.canMove) {
-                    yPos = newYPos;
-                } else {
-                    updateCornering(canMoveVertical);
-                }
-            }
-
-            // Then check horizontal movement
-            if (newXPos !== xPos) {
-                // Use updated yPos value for horizontal check
-                canMoveHorizontal = canMove(newXPos, yPos);
-                if (canMoveHorizontal.canMove) {
-                    xPos = newXPos;
-                } else {
-                    updateCornering(canMoveHorizontal);
-                }
+            isMoving = moved;
+            if (newYPos !== yPos && canMove(xPos, newYPos).canMove) yPos = newYPos
+            else if ((canMove(xPos, newYPos).canMove === false)) {
+                updateCornering(canMove(xPos, newYPos));
+            } else if (newXPos !== xPos && canMove(newXPos, yPos).canMove) xPos = newXPos;
+            else if (canMove(newXPos, yPos).canMove === false) {
+                updateCornering(canMove(newXPos, yPos));
             }
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
             // updateDebugWithTiles();
