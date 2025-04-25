@@ -71,9 +71,15 @@ function waiting() {
   ]);
 }
 
+
+let testStyle  = {
+  cursor: "pointer",
+  fontSize: "30px"
+}
+
 const waitingChattingPage = () => {
   return vdm("div", { class: "waiting-chatting-container" }, [
     vdm("div", { id: "leftSide" }, waiting()),
-    vdm("div", { id: "rightSide" }, chatting()),
+    vdm("div", { id: "rightSide" ,  style: testStyle }, chatting()),
   ]);
 }

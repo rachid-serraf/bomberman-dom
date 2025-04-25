@@ -60,6 +60,11 @@ function render(vDOM) {
       EventSystem.add(element, event, vDOM.attrs[key]);
     } else if (key === "checked") {
       element.checked = vDOM.attrs[key];
+    }else if (key === "style" && typeof vDOM.attrs[key] === "object") {
+      const styleObj = vDOM.attrs[key];
+      for (const prop in styleObj) {
+        element.style[prop] = styleObj[prop];
+      }
     } else {
       element.setAttribute(key, vDOM.attrs[key]);
     }
@@ -138,6 +143,11 @@ function diffing(root, oldVDOM, newVDOM, index = 0) {
         } catch (e) {
           console.error("Ref callback error:", e);
         }
+      } else if (attr === "style" && typeof newVDOM.attrs[attr] === "object") {
+        const styleObj = newVDOM.attrs[attr];
+        for (const prop in styleObj) {
+          element.style[prop] = styleObj[prop];
+        }
       } else if (newVDOM.attrs[attr] !== oldVDOM.attrs[attr]) {
         if (attr.startsWith("on")) {
           const event = attr.toLowerCase().slice(2);
@@ -150,7 +160,11 @@ function diffing(root, oldVDOM, newVDOM, index = 0) {
     }
 
     for (const attr in oldVDOM.attrs) {
-      if (!newVDOM.attrs[attr] && attr !== "ref") currentChild.removeAttribute(attr);
+      try {
+        if (!newVDOM.attrs[attr] && attr !== "ref") currentChild.removeAttribute(attr);
+      } catch (error) {
+        
+      }
     }
   }
 
