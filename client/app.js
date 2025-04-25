@@ -2,7 +2,7 @@ import { chatting, waitingChattingPage } from "./htmls.js";
 import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
-import { bombsArray, CurrPlayer, explosionsArray, placeAbomb, SetOtherPlayerAndMove } from "./players.js";
+import { bombsArray, CurrPlayer, explosionsArray, SetOtherPlayerAndMove } from "./players.js";
 import { Status } from "./status.js";
 import { updatePositons } from "./players.js";
 
@@ -73,14 +73,18 @@ function Game() {
   }
 
   const contanerRef = (container) => {
-    const containerWidth = window.innerWidth
+    const containerWidth = window.innerWidth;
     const containerHeight = window.innerHeight;
-
-    Status.tileSize = Math.min(
-      containerWidth / MapState.columns,
-      containerHeight / MapState.rows
+  
+    const newTileSize = Math.min(
+      Math.floor(containerWidth / MapState.columns),
+      Math.floor(containerHeight / MapState.rows)
     );
-
+    
+    Status.tileSize = Math.floor(newTileSize / 5) * 5;
+    
+    Status.tileSize = Math.max(Status.tileSize, 25);
+    
     container.style.gridTemplateRows = `repeat(${MapState.rows}, ${Status.tileSize}px)`;
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${Status.tileSize}px)`;
   }
@@ -104,15 +108,6 @@ function Game() {
       ...explosionsArray
     ))
 }
-
-// In your main.js file
-EventSystem.add(window, 'resize', () => { 
-  renderComponent(Game); 
-  resize = true;
-  setTimeout(() => {
-    updatePositons();
-  }, 50);
-}, true);
 
 // -------------------------- yassine -----------------------------------------
 let ws
@@ -179,6 +174,18 @@ function enter(event) {
     }
     if (data.type === "map_Generet") {
       MapState = data
+      EventSystem.add(window, 'resize', () => {
+        if (window.isResizing) return;
+        window.isResizing = true;
+        
+        renderComponent(Game);
+        
+        setTimeout(() => {
+          updatePositons();
+          window.isResizing = false;
+        }, 100);
+        
+      }, true);
       renderComponent(Game)
     }
     if (data.type === "player_moveng") {

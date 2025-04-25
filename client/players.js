@@ -2,7 +2,7 @@ import { Game, updateDebugInfo, ws } from "./app.js";
 import { EventSystem, renderComponent, vdm } from "./miniframework.js";
 import { Status } from "./status.js";
 
-export { CurrPlayer, SetOtherPlayerAndMove, bombsArray, explosionsArray, placeAbomb }
+export { CurrPlayer, SetOtherPlayerAndMove, bombsArray, explosionsArray }
 let xPos = null;
 let yPos = null;
 let lastBombTime = 0;
@@ -26,114 +26,6 @@ let lastClass = ""
 let explosionsArray = [];
 let bombsArray = [];
 
-function explosionEffect(top, left) {
-    let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
-    let [fpvx, fnvx, fpvy, fnvy] = [false, false, false, false];
-
-    const tileElement = document.querySelector(
-        `[data-row="${top}"][data-col="${left}"]`
-    );
-    const rect = tileElement.getBoundingClientRect();
-
-    explosionsArray.push(
-        vdm("div", {
-            className: "explosion",
-            style: `width: ${Status.tileSize}px; height: ${Status.tileSize}px; position: absolute; top: ${rect.top}px; left: ${rect.left}px; background-color: red;`
-        })
-    );
-    renderComponent(Game)
-
-    for (let index = 1; index < bombPower; index++) {
-        if (fpvx === false) {
-            tileElementPositiveVx = document.querySelector(
-                `[data-row="${top}"][data-col="${left + index}"]`
-            );
-            if (tileElementPositiveVx.id === 'toba' || tileElementPositiveVx.id === 'right' || tileElementPositiveVx.id === 'top' || tileElementPositiveVx.id === 'left' || tileElementPositiveVx.id === 'tree' || tileElementPositiveVx.id === 'down') fpvx = true;
-        }
-        if (fnvx === false) {
-            tileElementNegativeVx = document.querySelector(
-                `[data-row="${top}"][data-col="${left + (-index)}"]`
-            );
-            if (tileElementNegativeVx.id === 'toba' || tileElementNegativeVx.id === 'right' || tileElementNegativeVx.id === 'top' || tileElementNegativeVx.id === 'left' || tileElementNegativeVx.id === 'tree' || tileElementNegativeVx.id === 'down') fnvx = true;
-        }
-        if (fpvy === false) {
-            tileElementPositiveVy = document.querySelector(
-                `[data-row="${top + index}"][data-col="${left}"]`
-            );
-            if (tileElementPositiveVy.id === 'toba' || tileElementPositiveVy.id === 'right' || tileElementPositiveVy.id === 'top' || tileElementPositiveVy.id === 'left' || tileElementPositiveVy.id === 'tree' || tileElementPositiveVy.id === 'down') fpvy = true;
-        }
-        if (fnvy === false) {
-            tileElementNegativeVy = document.querySelector(
-                `[data-row="${top + (-index)}"][data-col="${left}"]`
-            );
-            if (tileElementNegativeVy.id === 'toba' || tileElementNegativeVy.id === 'right' || tileElementNegativeVy.id === 'top' || tileElementNegativeVy.id === 'left' || tileElementNegativeVy.id === 'tree' || tileElementNegativeVy.id === 'down') fnvy = true;
-        }
-
-        debugInfo["tileElementPositiveVx"] = tileElementPositiveVx.id;
-        debugInfo["tileElementNegativeVx"] = tileElementNegativeVx.id;
-        debugInfo["tileElementPositiveVy"] = tileElementPositiveVy.id;
-        debugInfo["tileElementNegativeVy"] = tileElementNegativeVy.id;
-
-        const tileElements = [
-            tileElementPositiveVx,
-            tileElementNegativeVx,
-            tileElementPositiveVy,
-            tileElementNegativeVy
-        ];
-
-        tileElements.forEach(tileElement => {
-            if (tileElement && (tileElement.id === 'grass' || tileElement.id === 'tree')) {
-                const rect = tileElement.getBoundingClientRect();
-
-                explosionsArray.push(
-                    vdm("div", {
-                        className: "explosion",
-                        style: `width: ${Status.tileSize}px; height: ${Status.tileSize}px; position: absolute; top: ${rect.top}px; left: ${rect.left}px; background-color: red;`
-                    })
-                );
-                renderComponent(Game)
-                if (tileElement.id === 'tree') {
-                }
-            }
-        });
-    }
-
-    // setTimeout(() => {
-    //     explosionsArray = [];
-    // }, 2000);
-}
-
-function placeAbomb(xgrid, ygrid, send = true) {
-    const tileElement = document.querySelector(
-        `[data-row="${xgrid}"][data-col="${ygrid}"]`
-    );
-    const rect = tileElement.getBoundingClientRect();
-
-    bombsArray.push(
-        vdm("div", {
-            class: "bomb",
-            style: `
-                width: ${Status.tileSize}px;
-                height: ${Status.tileSize}px;
-                position: absolute;
-                top: ${rect.top}px;
-                left: ${rect.left}px;`
-        }));
-    renderComponent(Game)
-    if (send) {
-        ws.send(JSON.stringify({
-            type: "set_bomb",
-            xGrid: xgrid,
-            yGrid: ygrid,
-        }));
-    }
-    setTimeout(() => {
-        bombsArray = bombsArray.slice(0, -1);
-        renderComponent(Game)
-        explosionEffect(xgrid, ygrid);
-    }, 2000);
-
-}
 
 function getPlayerTiles(playerX, playerY) {
     const corners = [
@@ -163,24 +55,6 @@ function getPlayerTiles(playerX, playerY) {
     };
 }
 
-function updateDebugWithTiles() {
-    const tiles = getPlayerTiles(xPos, yPos);
-
-    debugInfo["Player Position"] = `X: ${xPos}, Y: ${yPos}`;
-    debugInfo["Player Grid"] = `X: ${Math.round(xPos / Status.tileSize) + 1}, Y: ${Math.round(yPos / Status.tileSize) + 1}`;
-    debugInfo["Player Corner Grid"] = `X: ${Math.floor((xPos + playerWidth - 1) / Status.tileSize)}, Y: ${Math.floor((yPos + playerHeight - 1) / Status.tileSize)}`;
-    debugInfo["Current Direction"] = currentDirection;
-    debugInfo["Last Direction"] = lastDirection;
-    debugInfo["Is Moving"] = isMoving ? "Yes" : "No";
-
-    debugInfo["Current Tiles"] = tiles.uniqueTiles.map(tile =>
-        `(${tile.gridX + 1}, ${tile.gridY + 1})`
-    ).join(", ");
-
-    updateDebugInfo(debugInfo);
-}
-
-
 const playerRegistry = {
     currentPlayer: null,
     otherPlayers: {},
@@ -191,13 +65,16 @@ const playerRegistry = {
 export function updatePositons() {
     const ratio = playerRegistry.oldTileSize ? Status.tileSize / playerRegistry.oldTileSize : 1;
 
+    // Update global dimensions
+    let diff = (Status.tileSize / 100) * 10;
+    playerWidth = Status.tileSize - diff;
+    playerHeight = Status.tileSize - diff;
+    speedX = Status.tileSize / 20;
+    speedY = Status.tileSize / 20;
+
     if (playerRegistry.currentPlayer) {
         const currPlayer = document.getElementById("current-player");
         if (currPlayer) {
-            let diff = (Status.tileSize / 100) * 10;
-            const playerWidth = Status.tileSize - diff;
-            const playerHeight = Status.tileSize - diff;
-
             currPlayer.style.width = `${playerWidth}px`;
             currPlayer.style.height = `${playerHeight}px`;
 
@@ -213,6 +90,7 @@ export function updatePositons() {
                 currPlayer.style.left = `${tileRectInit.left + (diff / 2)}px`;
 
                 if (ratio !== 1 && xPos !== null && yPos !== null) {
+                    // Scale the position values by the tile size ratio
                     xPos = xPos * ratio;
                     yPos = yPos * ratio;
                     currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
@@ -224,10 +102,6 @@ export function updatePositons() {
     for (const [nickname, data] of Object.entries(playerRegistry.otherPlayers)) {
         const playerEl = document.getElementById(`other-player-${nickname}`);
         if (playerEl && data) {
-            let diff = (Status.tileSize / 100) * 10;
-            const playerWidth = Status.tileSize - diff;
-            const playerHeight = Status.tileSize - diff;
-
             playerEl.style.width = `${playerWidth}px`;
             playerEl.style.height = `${playerHeight}px`;
 
@@ -254,10 +128,10 @@ export function updatePositons() {
 //---------------------------------- end ayoub
 
 function CurrPlayer(pos = [1, 1]) {
-    playerRegistry.currentPlayer = { position: pos }; // ayoub
+    playerRegistry.currentPlayer = { position: pos };
 
     function initGame() {
-        if (xPos !== null || yPos !== null) return
+        if (xPos !== null || yPos !== null) return;
 
         currPlayer = document.getElementById("current-player");
         const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
@@ -269,13 +143,12 @@ function CurrPlayer(pos = [1, 1]) {
         }
         const tileRect = tileElement.getBoundingClientRect();
 
-        let diff = (Status.tileSize / 100) * 10
+        let diff = (Status.tileSize / 100) * 10;
 
         playerWidth = Status.tileSize - diff;
         playerHeight = Status.tileSize - diff;
-        speedX = Math.max(1, Math.floor(playerWidth / 20));
-        speedY = Math.max(1, Math.floor(playerHeight / 20));
-
+        speedX = Status.tileSize / 20;
+        speedY = Status.tileSize / 20;
 
         if (currPlayer) {
             currPlayer.style.width = `${playerWidth}px`;
@@ -283,16 +156,17 @@ function CurrPlayer(pos = [1, 1]) {
             currPlayer.style.top = `${tileRectInit.top + (diff / 2)}px`;
             currPlayer.style.left = `${tileRectInit.left + (diff / 2)}px`;
 
-            xPos = Math.round(tileRect.left - tileRectInit.right + playerWidth)
-            yPos = Math.round(tileRect.top - tileRectInit.bottom + playerHeight)
-            xPos < 0 ? xPos = 0 : xPos
-            yPos < 0 ? yPos = 0 : yPos
+            // Calculate initial position
+            xPos = Math.round((pos[1] - 1) * Status.tileSize);
+            yPos = Math.round((pos[0] - 1) * Status.tileSize);
+
             const spriteScaleFactor = playerHeight / 32;
 
             currPlayer.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
             currPlayer.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
             currPlayer.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
 
+            currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
             updatePlayerState("idle");
         }
 
@@ -301,7 +175,7 @@ function CurrPlayer(pos = [1, 1]) {
         EventSystem.add(document, "keyup", (e) => { keysPressed[e.key] = false; });
 
         startGameLoop();
-        playerRegistry.oldTileSize = Status.tileSize;  // ayoub
+        playerRegistry.oldTileSize = Status.tileSize;
     }
 
     function updatePlayerState(state, direction) {
@@ -334,6 +208,14 @@ function CurrPlayer(pos = [1, 1]) {
         const tileElement = document.querySelector(
             `[data-row="${gridY + 1}"][data-col="${gridX + 1}"]`
         );
+
+        if (!tileElement) {
+            return {
+                id: "unknown",
+                walkable: false
+            };
+        }
+
         return {
             id: tileElement.id,
             walkable: tileElement ? (tileElement.id === "grass") : false
@@ -430,13 +312,17 @@ function CurrPlayer(pos = [1, 1]) {
         }
     }
 
-
     function startGameLoop() {
         function gameLoop() {
+            // Update speed dynamically based on current tile size
+            speedX = Status.tileSize / 20;
+            speedY = Status.tileSize / 20;
+        
             let newXPos = xPos;
             let newYPos = yPos;
             let moved = false;
             let direction = lastDirection;
+        
             if (keysPressed["ArrowUp"]) {
                 newYPos -= speedY;
                 direction = "top";
@@ -446,6 +332,7 @@ function CurrPlayer(pos = [1, 1]) {
                 direction = "down";
                 moved = true;
             }
+        
             if (keysPressed["ArrowLeft"]) {
                 newXPos -= speedX;
                 direction = "left";
@@ -455,25 +342,17 @@ function CurrPlayer(pos = [1, 1]) {
                 direction = "right";
                 moved = true;
             }
-            if (keysPressed[" "]) {
-                const currentTime = Date.now();
-                if (currentTime - lastBombTime > bombCooldown) {
-                    const tiles = getPlayerTiles(xPos + (Status.tileSize / 2), yPos + (Status.tileSize / 2));
-                    let xgrid = tiles.uniqueTiles[0].gridY + 1;
-                    let ygrid = tiles.uniqueTiles[0].gridX + 1;
-                    placeAbomb(xgrid, ygrid);
-                    lastBombTime = currentTime;
-                }
-            }
+        
             if (moved) {
                 if (currentDirection !== direction) {
                     updatePlayerState("moving", direction);
                 }
-                sendPosition()
+                sendPosition();
             } else if (isMoving) {
                 updatePlayerState("idle", lastDirection);
-                sendPosition()
+                sendPosition();
             }
+        
             function sendPosition() {
                 ws.send(JSON.stringify({
                     type: "player_moveng",
@@ -482,20 +361,38 @@ function CurrPlayer(pos = [1, 1]) {
                     direction: lastClass,
                 }));
             }
-
+        
             isMoving = moved;
-            if (newYPos !== yPos && canMove(xPos, newYPos).canMove) yPos = newYPos
-            else if ((canMove(xPos, newYPos).canMove === false)) {
-                updateCornering(canMove(xPos, newYPos));
-            } else if (newXPos !== xPos && canMove(newXPos, yPos).canMove) xPos = newXPos;
-            else if (canMove(newXPos, yPos).canMove === false) {
-                updateCornering(canMove(newXPos, yPos));
+        
+            // Store canMove results to avoid multiple calculations with the same parameters
+            let canMoveVertical = null;
+            let canMoveHorizontal = null;
+        
+            // Check vertical movement first (if there was any)
+            if (newYPos !== yPos) {
+                canMoveVertical = canMove(xPos, newYPos);
+                if (canMoveVertical.canMove) {
+                    yPos = newYPos;
+                } else {
+                    updateCornering(canMoveVertical);
+                }
             }
-
+        
+            // Then check horizontal movement
+            if (newXPos !== xPos) {
+                // Use updated yPos value for horizontal check
+                canMoveHorizontal = canMove(newXPos, yPos);
+                if (canMoveHorizontal.canMove) {
+                    xPos = newXPos;
+                } else {
+                    updateCornering(canMoveHorizontal);
+                }
+            }
+        
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
-            updateDebugWithTiles();
             animationFrameId = requestAnimationFrame(gameLoop);
         }
+
         animationFrameId = requestAnimationFrame(gameLoop);
     }
 
@@ -505,13 +402,13 @@ function CurrPlayer(pos = [1, 1]) {
         ref: initGame
     });
 }
+
 let isfirst = false
+
 function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
     let playerEl;
-    let playerWidth = 32;
-    let playerHeight = 32;
-    
-    if (isMove) {  // ayoub
+
+    if (isMove) {
         if (!playerRegistry.otherPlayers[data.nickname]) {
             playerRegistry.otherPlayers[data.nickname] = {};
         }
@@ -523,10 +420,12 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
         move();
         return;
     }
-    
-    if (!playerRegistry.otherPlayers[nam]) {  // ayoub
+
+    if (!playerRegistry.otherPlayers[nam]) {
         playerRegistry.otherPlayers[nam] = {
-            initialPos: initialPos
+            initialPos: initialPos,
+            xPos: initialPos[1] - 1,
+            yPos: initialPos[0] - 1
         };
     }
 
@@ -542,38 +441,30 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
         if (isfirst) return;
         isfirst = true;
         playerEl = ele;
-        const tileElement = document.querySelector(`[data-row="${initialPos[0]}"][data-col="${initialPos[1]}"]`);
-        if (!tileElement) {
-            return;
-        }
-        const tileRect = tileElement.getBoundingClientRect();
-        let diff = (Status.tileSize / 100) * 10;
 
-        playerWidth = Status.tileSize - diff;
-        playerHeight = Status.tileSize - diff;
+        let diff = (Status.tileSize / 100) * 10;
+        const playerWidth = Status.tileSize - diff;
+        const playerHeight = Status.tileSize - diff;
 
         const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
-        const tileRectInit = tileElementInit.getBoundingClientRect();
-        let xPos = Math.round(tileRect.left - tileRectInit.right + playerWidth);
-        let yPos = Math.round(tileRect.top - tileRectInit.bottom + playerHeight);
-        xPos < 0 ? xPos = 0 : xPos;
-        yPos < 0 ? yPos = 0 : yPos;
+        if (tileElementInit) {
+            const tileRectInit = tileElementInit.getBoundingClientRect();
 
-        if (playerEl) {
-            playerEl.style.width = `${playerWidth}px`;
-            playerEl.style.height = `${playerHeight}px`;
-            playerEl.style.top = `${tileRectInit.top + (diff / 2)}px`;
-            playerEl.style.left = `${tileRectInit.left + (diff / 2)}px`;
-            playerEl.style.transform = `translate(${(xPos)}px, ${(yPos)}px)`;
+            if (playerEl) {
+                playerEl.style.width = `${playerWidth}px`;
+                playerEl.style.height = `${playerHeight}px`;
+                playerEl.style.top = `${tileRectInit.top + (diff / 2)}px`;
+                playerEl.style.left = `${tileRectInit.left + (diff / 2)}px`;
+                playerEl.style.transform = `translate(${((initialPos[1] - 1) * Status.tileSize)}px, ${((initialPos[0] - 1) * Status.tileSize)}px)`;
 
-            const spriteScaleFactor = playerHeight / 32;
-
-            playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
-            playerEl.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
-            playerEl.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
+                const spriteScaleFactor = playerHeight / 32;
+                playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
+                playerEl.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
+                playerEl.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
+            }
         }
-        
-        playerRegistry.oldTileSize = Status.tileSize;  // ayoub
+
+        playerRegistry.oldTileSize = Status.tileSize;
     }
 
     return (
