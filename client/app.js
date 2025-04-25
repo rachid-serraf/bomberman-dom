@@ -2,13 +2,13 @@ import { chatting, waitingChattingPage, waiting } from "./htmls.js";
 import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
-import { bombsArray, CurrPlayer, explosionsArray, SetOtherPlayerAndMove } from "./players.js";
+import { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion } from "./players.js";
 import { Status } from "./status.js";
 import { updatePositons } from "./players.js";
 
 setRoot("app")
 const router = new Router(renderComponent)
-export { room, left_time, sendMessage, messages, updateDebugInfo, ws, Game }
+export { room, left_time, nickname, sendMessage, messages, updateDebugInfo, ws, Game }
 let MapState = null;
 
 function createDebugPanel() {
@@ -98,14 +98,22 @@ function Game() {
       players.push(SetOtherPlayerAndMove(false, null, nam, position));
     }
   }
+  let bombs = []
+  for (const bmb of Status.bombs) {
+    bombs.push(vdmBombs(bmb.xgrid, bmb.ygrid))
+  }
+  let explo = []
+  for (const exp of Status.explosions) {
+    explo.push(vdmExplosion(exp))
+  }
 
   return (
     vdm("div", {},
       vdm("div", { id: "game-container", ref: contanerRef },
         ...draw()),
       ...players,
-      ...bombsArray,
-      ...explosionsArray
+      ...bombs,
+      ...explo,
     ))
 }
 
@@ -204,7 +212,8 @@ function enter(event) {
       SetOtherPlayerAndMove(true, data);
     }
     if (data.type === "set_bomb") {
-      placeAbomb(data.xGrid, data.yGrid, false)
+      Status.bombs.push(data)
+      renderComponent(Game)
     }
   };
 

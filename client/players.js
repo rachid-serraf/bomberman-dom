@@ -1,8 +1,8 @@
-import { Game, updateDebugInfo, ws } from "./app.js";
+import { Game, nickname, updateDebugInfo, ws } from "./app.js";
 import { EventSystem, renderComponent, vdm } from "./miniframework.js";
 import { Status } from "./status.js";
 
-export { CurrPlayer, SetOtherPlayerAndMove, bombsArray, explosionsArray }
+export { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion, bombsArray, explosionsArray }
 let xPos = null;
 let yPos = null;
 let lastBombTime = 0;
@@ -25,6 +25,152 @@ let bombPower = 2;
 let lastClass = ""
 let explosionsArray = [];
 let bombsArray = [];
+
+function vdmExplosion(explo) {
+    let top
+    let left
+    if (explo.xgrid && explo.ygrid) {
+        const tileElement = document.querySelector(
+            `[data-row="${explo.xgrid}"][data-col="${explo.ygrid}"]`
+        );
+        const rect = tileElement?.getBoundingClientRect();
+        top = rect.top
+        left = rect.left
+    } else {
+        top = explo.top
+        left = explo.left
+    }
+    return vdm("div", {
+        id: "fire",
+        class: "explosion",
+        style: `
+            width: ${Status.tileSize}px;
+            height: ${Status.tileSize}px;
+            position: absolute;
+            top: ${top}px;
+            left: ${left}px;
+            background-color: red;`
+    });
+}
+
+function explosionEffect(top, left) {
+    let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
+    let [fpvx, fnvx, fpvy, fnvy] = [false, false, false, false];
+
+    const time = Date.now();
+    Status.explosions.push({ nickname, xgrid: top, ygrid: left, time });
+
+    for (let index = 1; index < bombPower; index++) {
+        if (fpvx === false) {
+            tileElementPositiveVx = document.querySelector(
+                `[data-row="${top}"][data-col="${left + index}"]`
+            );
+            if (tileElementPositiveVx.id === 'toba' || tileElementPositiveVx.id === 'right' || tileElementPositiveVx.id === 'top' || tileElementPositiveVx.id === 'left' || tileElementPositiveVx.id === 'tree' || tileElementPositiveVx.id === 'down') fpvx = true;
+        }
+        if (fnvx === false) {
+            tileElementNegativeVx = document.querySelector(
+                `[data-row="${top}"][data-col="${left + (-index)}"]`
+            );
+            if (tileElementNegativeVx.id === 'toba' || tileElementNegativeVx.id === 'right' || tileElementNegativeVx.id === 'top' || tileElementNegativeVx.id === 'left' || tileElementNegativeVx.id === 'tree' || tileElementNegativeVx.id === 'down') fnvx = true;
+        }
+        if (fpvy === false) {
+            tileElementPositiveVy = document.querySelector(
+                `[data-row="${top + index}"][data-col="${left}"]`
+            );
+            if (tileElementPositiveVy.id === 'toba' || tileElementPositiveVy.id === 'right' || tileElementPositiveVy.id === 'top' || tileElementPositiveVy.id === 'left' || tileElementPositiveVy.id === 'tree' || tileElementPositiveVy.id === 'down') fpvy = true;
+        }
+        if (fnvy === false) {
+            tileElementNegativeVy = document.querySelector(
+                `[data-row="${top + (-index)}"][data-col="${left}"]`
+            );
+            if (tileElementNegativeVy.id === 'toba' || tileElementNegativeVy.id === 'right' || tileElementNegativeVy.id === 'top' || tileElementNegativeVy.id === 'left' || tileElementNegativeVy.id === 'tree' || tileElementNegativeVy.id === 'down') fnvy = true;
+        }
+
+        debugInfo["tileElementPositiveVx"] = tileElementPositiveVx.id;
+        debugInfo["tileElementNegativeVx"] = tileElementNegativeVx.id;
+        debugInfo["tileElementPositiveVy"] = tileElementPositiveVy.id;
+        debugInfo["tileElementNegativeVy"] = tileElementNegativeVy.id;
+
+        const tileElements = [
+            tileElementPositiveVx,
+            tileElementNegativeVx,
+            tileElementPositiveVy,
+            tileElementNegativeVy
+        ];
+
+        tileElements.forEach(tileElement => {
+            if (tileElement && (tileElement.id === 'grass' || tileElement.id === 'tree')) {
+                const rect = tileElement.getBoundingClientRect();
+                Status.explosions.push({ nickname, top: rect.top, left: rect.left, time });
+                renderComponent(Game);
+                if (tileElement.id === 'tree') {
+                    // Handle tree destruction if needed
+                }
+            }
+        });
+    }
+}
+
+function handleExplosions() {
+    Status.bombs = Status.bombs.filter(bomb => {
+        if (Date.now() - bomb.time > Status.TIME_EXPLOSION_BOMB) {
+            explosionEffect(bomb.xgrid, bomb.ygrid)
+            if (bomb.nickname === nickname) {
+                console.log(Status.numberCanSetBomb, bomb.nickname, nickname);
+                Status.numberCanSetBomb += 1
+            }
+            return false
+        }
+        return true
+    })
+}
+function handleExplosionsEffect() {
+    let ischange = false
+    Status.explosions = Status.explosions.filter(explo => {
+        if (Date.now() - explo.time > 450) {
+            ischange = true
+            return false
+        }
+        return true
+    })
+    return ischange
+}
+function vdmBombs(xgrid, ygrid) {
+    const tileElement = document.querySelector(
+        `[data-row="${xgrid}"][data-col="${ygrid}"]`
+    );
+    const rect = tileElement.getBoundingClientRect();
+    const spriteScaleFactor = Status.tileSize / 32;
+
+    return (
+        vdm("div", {
+            ref: refbomb,
+            class: "bomb",
+            style: `
+                width: ${Status.tileSize}px;
+                height: ${Status.tileSize}px;
+                position: absolute;
+                top: ${rect.top}px;
+                left: ${rect.left}px;
+                 --sprite-width: ${32 * spriteScaleFactor}px;
+                --sprite-height: ${32 * spriteScaleFactor}px;
+                --sprite-sheet-width: ${96 * spriteScaleFactor}px;`
+        }));
+}
+
+function placeAbomb(xgrid, ygrid) {
+    const now = Date.now()
+    Status.bombs.push({ nickname, xgrid, ygrid, time: now })
+    Status.numberCanSetBomb -= 1
+    renderComponent(Game)
+    ws.send(JSON.stringify({
+        type: "set_bomb",
+        xgrid,
+        ygrid,
+        time: now
+    }));
+
+}
 
 
 function getPlayerTiles(playerX, playerY) {
@@ -315,16 +461,16 @@ function CurrPlayer(pos = [1, 1]) {
     }
 
     function startGameLoop() {
-        function gameLoop() {
+        function gameLoop(timetamp) {
             // Update speed dynamically based on current tile size
             speedX = Status.tileSize / 20;
             speedY = Status.tileSize / 20;
-        
+
             let newXPos = xPos;
             let newYPos = yPos;
             let moved = false;
             let direction = lastDirection;
-        
+
             if (keysPressed["ArrowUp"]) {
                 newYPos -= speedY;
                 direction = "top";
@@ -334,7 +480,7 @@ function CurrPlayer(pos = [1, 1]) {
                 direction = "down";
                 moved = true;
             }
-        
+
             if (keysPressed["ArrowLeft"]) {
                 newXPos -= speedX;
                 direction = "left";
@@ -344,7 +490,15 @@ function CurrPlayer(pos = [1, 1]) {
                 direction = "right";
                 moved = true;
             }
-        
+            if (keysPressed[" "]) {
+                if (timetamp - lastBombTime > 300 && Status.numberCanSetBomb !== 0) {
+                    const tiles = getPlayerTiles(xPos + (Status.tileSize / 2), yPos + (Status.tileSize / 2));
+                    let xgrid = tiles.uniqueTiles[0].gridY + 1;
+                    let ygrid = tiles.uniqueTiles[0].gridX + 1;
+                    placeAbomb(xgrid, ygrid);
+                    lastBombTime = timetamp
+                }
+            }
             if (moved) {
                 if (currentDirection !== direction) {
                     updatePlayerState("moving", direction);
@@ -354,7 +508,7 @@ function CurrPlayer(pos = [1, 1]) {
                 updatePlayerState("idle", lastDirection);
                 sendPosition();
             }
-        
+
             function sendPosition() {
                 ws.send(JSON.stringify({
                     type: "player_moveng",
@@ -363,13 +517,13 @@ function CurrPlayer(pos = [1, 1]) {
                     direction: lastClass,
                 }));
             }
-        
+
             isMoving = moved;
-        
+
             // Store canMove results to avoid multiple calculations with the same parameters
             let canMoveVertical = null;
             let canMoveHorizontal = null;
-        
+
             // Check vertical movement first (if there was any)
             if (newYPos !== yPos) {
                 canMoveVertical = canMove(xPos, newYPos);
@@ -379,7 +533,7 @@ function CurrPlayer(pos = [1, 1]) {
                     updateCornering(canMoveVertical);
                 }
             }
-        
+
             // Then check horizontal movement
             if (newXPos !== xPos) {
                 // Use updated yPos value for horizontal check
@@ -390,8 +544,12 @@ function CurrPlayer(pos = [1, 1]) {
                     updateCornering(canMoveHorizontal);
                 }
             }
-        
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
+            // updateDebugWithTiles();
+            handleExplosions()
+            if (handleExplosionsEffect()) {
+                renderComponent(Game)
+            }
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
