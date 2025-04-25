@@ -176,6 +176,8 @@ function CurrPlayer(pos = [1, 1]) {
 
         startGameLoop();
         playerRegistry.oldTileSize = Status.tileSize;
+
+        // console.log(EventSystem.events); 
     }
 
     function updatePlayerState(state, direction) {

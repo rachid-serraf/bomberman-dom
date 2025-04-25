@@ -1,8 +1,11 @@
-export { waitingChattingPage, chatting };
-import { vdm } from "./miniframework.js";
+export { waitingChattingPage, chatting , waiting };
+import { EventSystem, vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
 
 function chatting() {
+  console.log("chatting render");
+  console.log(EventSystem.events);
+
   return vdm("div", { class: "chat-container" }, [
     vdm("div", { class: "chat-header" }, [
       vdm("h2", {}, ["Game Chat"]),
@@ -12,8 +15,6 @@ function chatting() {
 
         const messageClass = msg.is_mine ? "user-message" : "other-message";
         const senderName = msg.is_mine ? "You" : msg.nickname;
-        console.log(msg.is_mine);
-
 
         return vdm("div", { class: `message ${messageClass}` }, [
           vdm("div", { class: "message-sender" }, [senderName]),
@@ -35,6 +36,9 @@ function chatting() {
 
 
 function waiting() {
+  console.log("waiting render");
+  console.log(EventSystem.events);
+
   let players = room.players || []
   const maxPlayers = 4;
   const connectedPlayers = players.map((name) =>
@@ -57,7 +61,7 @@ function waiting() {
     ])
   );
 
-  return vdm("div", { class: "players-container" }, [
+  return vdm("div", {class: "players-container" }, [
     vdm("h1", { class: "waiting-title" }, [`left Time ${left_time} Seconds`]),
     vdm("h1", { class: "waiting-title" }, [`Players (${players.length}/4)`]),
     vdm("div", { class: "players-list" }, [
@@ -69,7 +73,7 @@ function waiting() {
 
 const waitingChattingPage = () => {
   return vdm("div", { class: "waiting-chatting-container" }, [
-    waiting(),
-    chatting(),
+    vdm("div", { id: "leftSide" }, waiting()),
+    vdm("div", { id: "rightSide" }, chatting()),
   ]);
 }

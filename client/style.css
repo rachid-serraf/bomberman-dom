@@ -18,7 +18,7 @@
 
 /* Left Side: Waiting Players */
 .players-container {
-  width: 70vw;
+  width: 69vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -29,12 +29,13 @@
 
 /* Right Side: Chat */
 .chat-container {
-  width: 30vw;
+  width: 29vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #252525;
 }
+
 .waiting-title {
   font-size: 24px;
   font-weight: bold;

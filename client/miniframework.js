@@ -79,6 +79,9 @@ let rootElement = null;
 * @param {string} elementId - ID of the root DOM element.
 */
 function setRoot(elementId) {
+  if (document.getElementById(elementId) != rootElement) {
+    currentComponent = null
+  }
   rootElement = document.getElementById(elementId);
 }
 
@@ -176,10 +179,10 @@ let haveNewState = false;
 * @param {Function} component - A function returning a virtual DOM.
 */
 function renderComponent(component, isNwPath = false) {
-  if (haveNewState) {
-    EventSystem.cleanAll();
-    haveNewState = false;
-  }
+  // if (haveNewState) {
+  //   EventSystem.cleanAll();
+  //   haveNewState = false;
+  // }
 
   if (!rootElement) {
     console.error("Root element is not set. Call setRoot(elementId).");
@@ -262,8 +265,9 @@ const EventSystem = {
       if (!this.events[eventType]) {
         this.events[eventType] = [];
         element.addEventListener(eventType, handler);
+      }else{
+        this.events[eventType].push({ element, handler, protect });
       }
-      this.events[eventType].push({ element, handler, protect });
       return;
     }
 

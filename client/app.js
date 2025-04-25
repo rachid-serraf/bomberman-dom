@@ -1,4 +1,4 @@
-import { chatting, waitingChattingPage } from "./htmls.js";
+import { chatting, waitingChattingPage, waiting } from "./htmls.js";
 import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
@@ -37,7 +37,7 @@ function updateDebugInfo(info) {
     .join('');
 }
 
-let resize = false
+let lastState = {}
 
 function Game() {
   if (!MapState) return vdm("div", {}, "loding map...")
@@ -75,16 +75,16 @@ function Game() {
   const contanerRef = (container) => {
     const containerWidth = window.innerWidth;
     const containerHeight = window.innerHeight;
-  
+
     const newTileSize = Math.min(
       Math.floor(containerWidth / MapState.columns),
       Math.floor(containerHeight / MapState.rows)
     );
-    
+
     Status.tileSize = Math.floor(newTileSize / 5) * 5;
-    
+
     Status.tileSize = Math.max(Status.tileSize, 25);
-    
+
     container.style.gridTemplateRows = `repeat(${MapState.rows}, ${Status.tileSize}px)`;
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${Status.tileSize}px)`;
   }
@@ -155,10 +155,18 @@ function enter(event) {
       if (data.type === "player_left" && room.players.length === 1) {
         left_time = 20
       }
-      renderComponent(waitingChattingPage, false);
+      // renderComponent(waitingChattingPage, false);
+      StateManagement.set({
+        waiting: data
+      })
+
     } else if (data.type === "countdown") {
       left_time = data.timeLeft
-      renderComponent(waitingChattingPage, false)
+      // renderComponent(waitingChattingPage, false)
+      StateManagement.set({
+        waiting: data
+      })
+
       if (left_time === 0) {
         ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }))
 
@@ -170,21 +178,25 @@ function enter(event) {
     } else if (data.type === "chat") {
       let is_mine = data.nickname === nickname
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
-      renderComponent(waitingChattingPage, false);
+
+      StateManagement.set({
+        chat: data
+      })
+
     }
     if (data.type === "map_Generet") {
       MapState = data
       EventSystem.add(window, 'resize', () => {
         if (window.isResizing) return;
         window.isResizing = true;
-        
+
         renderComponent(Game);
-        
+
         setTimeout(() => {
           updatePositons();
           window.isResizing = false;
         }, 100);
-        
+
       }, true);
       renderComponent(Game)
     }
@@ -269,3 +281,24 @@ router.setNotFound(() =>
     vdm("button", { onClick: () => router.link("/") }, `go to ${path}`)
   )
 )
+
+StateManagement.subscribe((state) => {
+  if (state.chat !== lastState.chat) {
+    console.log("hna");
+    setRoot('rightSide')
+    renderComponent(chatting);
+  }
+
+  if (state.waiting !== lastState.waiting) {
+    console.log("lhih");
+    setRoot('leftSide')
+    renderComponent(waiting);
+  }
+
+  lastState = StateManagement.get()
+})
+
+
+// state managment to work darori
+// khas ay event jdid tzidlo we7da b7al hadi
+// EventSystem.add(document.body, "click", () => { }, true)
