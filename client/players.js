@@ -144,7 +144,6 @@ function vdmBombs(xgrid, ygrid) {
 
     return (
         vdm("div", {
-            ref: refbomb,
             class: "bomb",
             style: `
                 width: ${Status.tileSize}px;
