@@ -9,7 +9,6 @@ import { updatePositons } from "./players.js";
 setRoot("app")
 const router = new Router(renderComponent)
 export { room, left_time, nickname, sendMessage, messages, updateDebugInfo, ws, Game }
-let MapState = null;
 
 function createDebugPanel() {
   const debugPanel = document.createElement('div');
@@ -40,6 +39,8 @@ function updateDebugInfo(info) {
 let lastState = {}
 
 function Game() {
+  let MapState = StateManagement.get().MapState
+
   if (!MapState) return vdm("div", {}, "loding map...")
   function draw() {
     let tiles = []
@@ -99,11 +100,11 @@ function Game() {
     }
   }
   let bombs = []
-  for (const bmb of Status.bombs) {
+  for (const bmb of StateManagement.get()?.bombs || []) {
     bombs.push(vdmBombs(bmb.xgrid, bmb.ygrid))
   }
   let explo = []
-  for (const exp of Status.explosions) {
+  for (const exp of StateManagement.get()?.explosions || []) {
     explo.push(vdmExplosion(exp))
   }
 
@@ -131,7 +132,6 @@ function sendMessage(e) {
 }
 
 function enter(event) {
-  // [MapState, setMapState] = useState(null, Game)
   messages = []
   event.preventDefault();
   nickname = document.getElementById("nickname").value;
@@ -193,7 +193,7 @@ function enter(event) {
 
     }
     if (data.type === "map_Generet") {
-      MapState = data
+      StateManagement.set({ MapState: data })
       EventSystem.add(window, 'resize', () => {
         if (window.isResizing) return;
         window.isResizing = true;
@@ -206,14 +206,17 @@ function enter(event) {
         }, 100);
 
       }, true);
-      renderComponent(Game)
+      // renderComponent(Game)
     }
     if (data.type === "player_moveng") {
+      Status.players[data.nickname] = { xPos: data.xPos, yPos: data.yPos }
       SetOtherPlayerAndMove(true, data);
     }
     if (data.type === "set_bomb") {
-      Status.bombs.push(data)
-      renderComponent(Game)
+      StateManagement.set({
+        bombs: [...(StateManagement.get()?.bombs || []), data]
+      });
+      // renderComponent(Game)
     }
   };
 
@@ -293,17 +296,20 @@ router.setNotFound(() =>
 
 StateManagement.subscribe((state) => {
   if (state.chat !== lastState.chat) {
-    console.log("hna");
     setRoot('rightSide')
     renderComponent(chatting);
   }
 
   if (state.waiting !== lastState.waiting) {
-    console.log("lhih");
     setRoot('leftSide')
     renderComponent(waiting);
   }
-
+  if (state.MapState !== lastState.MapState ||
+    state.bombs !== lastState.bombs ||
+    state.explosions !== lastState.explosions) {
+    setRoot('app')
+    renderComponent(Game)
+  }
   lastState = StateManagement.get()
 })
 

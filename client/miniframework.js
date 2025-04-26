@@ -60,7 +60,7 @@ function render(vDOM) {
       EventSystem.add(element, event, vDOM.attrs[key]);
     } else if (key === "checked") {
       element.checked = vDOM.attrs[key];
-    }else if (key === "style" && typeof vDOM.attrs[key] === "object") {
+    } else if (key === "style" && typeof vDOM.attrs[key] === "object") {
       const styleObj = vDOM.attrs[key];
       for (const prop in styleObj) {
         element.style[prop] = styleObj[prop];
@@ -84,10 +84,12 @@ let rootElement = null;
 * @param {string} elementId - ID of the root DOM element.
 */
 function setRoot(elementId) {
-  if (document.getElementById(elementId) != rootElement) {
+  let rot = document.getElementById(elementId)
+  if (!rot) throw new Error(`root elemnt not found [${elementId}]`)
+  if (rot != rootElement) {
     currentComponent = null
   }
-  rootElement = document.getElementById(elementId);
+  rootElement = rot;
 }
 
 let currentComponent = null;
@@ -163,7 +165,7 @@ function diffing(root, oldVDOM, newVDOM, index = 0) {
       try {
         if (!newVDOM.attrs[attr] && attr !== "ref") currentChild.removeAttribute(attr);
       } catch (error) {
-        
+
       }
     }
   }
@@ -279,7 +281,7 @@ const EventSystem = {
       if (!this.events[eventType]) {
         this.events[eventType] = [];
         element.addEventListener(eventType, handler);
-      }else{
+      } else {
         this.events[eventType].push({ element, handler, protect });
       }
       return;

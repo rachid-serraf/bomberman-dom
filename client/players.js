@@ -1,14 +1,11 @@
 import { Game, nickname, updateDebugInfo, ws } from "./app.js";
-import { EventSystem, renderComponent, vdm } from "./miniframework.js";
+import { EventSystem, renderComponent, StateManagement, vdm } from "./miniframework.js";
 import { Status } from "./status.js";
 
-export { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion, bombsArray, explosionsArray }
+export { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion }
 let xPos = null;
 let yPos = null;
 let lastBombTime = 0;
-const bombCooldown = 4000;
-// let Status.tileSize = 0;
-// let Status.tileSize = 0;
 let playerWidth = 0;
 let playerHeight = 0;
 let debugInfo = {};
@@ -23,8 +20,6 @@ let lastDirection = "down";
 let skipCorner = { x: 0, y: 0 };
 let bombPower = 2;
 let lastClass = ""
-let explosionsArray = [];
-let bombsArray = [];
 
 function vdmExplosion(explo) {
     let top
@@ -60,7 +55,7 @@ function explosionEffect(top, left) {
     let [fpvx, fnvx, fpvy, fnvy] = [false, false, false, false];
 
     const time = Date.now();
-    Status.explosions.push({ nickname, xgrid: top, ygrid: left, time });
+    let exploAdd = [{ nickname, xgrid: top, ygrid: left, time }]
 
     for (let index = 1; index < bombPower; index++) {
         if (fpvx === false) {
@@ -103,39 +98,44 @@ function explosionEffect(top, left) {
         tileElements.forEach(tileElement => {
             if (tileElement && (tileElement.id === 'grass' || tileElement.id === 'tree')) {
                 const rect = tileElement.getBoundingClientRect();
-                Status.explosions.push({ nickname, top: rect.top, left: rect.left, time });
-                renderComponent(Game);
+                exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
+
                 if (tileElement.id === 'tree') {
                     // Handle tree destruction if needed
                 }
             }
         });
+        console.log(Status.players);
+
+        StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
     }
 }
 
-function handleExplosions() {
-    Status.bombs = Status.bombs.filter(bomb => {
+function handleExplosions(bombsfiler) {
+    let ischange = false
+    bombsfiler = bombsfiler.filter(bomb => {
         if (Date.now() - bomb.time > Status.TIME_EXPLOSION_BOMB) {
             explosionEffect(bomb.xgrid, bomb.ygrid)
             if (bomb.nickname === nickname) {
-                console.log(Status.numberCanSetBomb, bomb.nickname, nickname);
                 Status.numberCanSetBomb += 1
             }
-            return false
-        }
-        return true
-    })
-}
-function handleExplosionsEffect() {
-    let ischange = false
-    Status.explosions = Status.explosions.filter(explo => {
-        if (Date.now() - explo.time > 1000) {
             ischange = true
             return false
         }
         return true
     })
-    return ischange
+    return { ischange, bombsfiler }
+}
+function handleExplosionsEffect(exploFilter) {
+    let ischangeExp = false
+    exploFilter = exploFilter.filter(explo => {
+        if (Date.now() - explo.time > 1000) {
+            ischangeExp = true
+            return false
+        }
+        return true
+    })
+    return { ischangeExp, exploFilter }
 }
 function vdmBombs(xgrid, ygrid) {
     const tileElement = document.querySelector(
@@ -159,18 +159,17 @@ function vdmBombs(xgrid, ygrid) {
 
 function placeAbomb(xgrid, ygrid) {
     const now = Date.now()
-    Status.bombs.push({ nickname, xgrid, ygrid, time: now })
+    StateManagement.set({
+        bombs: [...(StateManagement.get()?.bombs || []), { nickname, xgrid, ygrid, time: now }]
+    });
     Status.numberCanSetBomb -= 1
-    renderComponent(Game)
     ws.send(JSON.stringify({
         type: "set_bomb",
         xgrid,
         ygrid,
         time: now
     }));
-
 }
-
 
 function getPlayerTiles(playerX, playerY) {
     const corners = [
@@ -305,6 +304,7 @@ function CurrPlayer(pos = [1, 1]) {
             currPlayer.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
 
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
+            Status.players[nickname] = { xPos, yPos }
             updatePlayerState("idle");
         }
 
@@ -493,13 +493,13 @@ function CurrPlayer(pos = [1, 1]) {
             if (moved) {
                 if (currentDirection !== direction) {
                     updatePlayerState("moving", direction);
+                    Status.players[nickname] = { xPos, yPos }
                 }
                 sendPosition();
             } else if (isMoving) {
                 updatePlayerState("idle", lastDirection);
                 sendPosition();
             }
-
             function sendPosition() {
                 ws.send(JSON.stringify({
                     type: "player_moveng",
@@ -511,10 +511,6 @@ function CurrPlayer(pos = [1, 1]) {
 
             isMoving = moved;
 
-            // Store canMove results to avoid multiple calculations with the same parameters
-            // let canMoveVertical = null;
-            // let canMoveHorizontal = null;
-
             isMoving = moved;
             if (newYPos !== yPos && canMove(xPos, newYPos).canMove) yPos = newYPos
             else if ((canMove(xPos, newYPos).canMove === false)) {
@@ -524,11 +520,14 @@ function CurrPlayer(pos = [1, 1]) {
                 updateCornering(canMove(newXPos, yPos));
             }
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
-            // updateDebugWithTiles();
-            handleExplosions()
-            if (handleExplosionsEffect()) {
-                renderComponent(Game)
-            }
+
+            let { ischange, bombsfiler } = handleExplosions(StateManagement.get()?.bombs || [])
+            if (ischange) StateManagement.set({ bombs: bombsfiler })
+
+            let { ischangeExp, exploFilter } = handleExplosionsEffect(StateManagement.get()?.explosions || [])
+            if (ischangeExp) StateManagement.set({ explosions: exploFilter })
+
+
             animationFrameId = requestAnimationFrame(gameLoop);
         }
 
@@ -594,7 +593,10 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
                 playerEl.style.height = `${playerHeight}px`;
                 playerEl.style.top = `${tileRectInit.top + (diff / 2)}px`;
                 playerEl.style.left = `${tileRectInit.left + (diff / 2)}px`;
-                playerEl.style.transform = `translate(${((initialPos[1] - 1) * Status.tileSize)}px, ${((initialPos[0] - 1) * Status.tileSize)}px)`;
+                let xPos = ((initialPos[1] - 1) * Status.tileSize)
+                let yPos = ((initialPos[0] - 1) * Status.tileSize)
+                playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
+                Status.players[nam] = { xPos, yPos }
 
                 const spriteScaleFactor = playerHeight / 32;
                 playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
