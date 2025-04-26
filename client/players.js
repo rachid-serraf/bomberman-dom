@@ -40,16 +40,18 @@ function vdmExplosion(explo) {
         top = explo.top
         left = explo.left
     }
+    const spriteScaleFactor = Status.tileSize / 32;
+
     return vdm("div", {
         id: "fire",
         class: "explosion",
         style: `
             width: ${Status.tileSize}px;
             height: ${Status.tileSize}px;
-            position: absolute;
-            top: ${top}px;
-            left: ${left}px;
-            background-color: red;`
+            transform: translate(${left}px, ${top}px);
+            --bomb-width: ${32 * spriteScaleFactor}px;
+            --bomb-height: ${32 * spriteScaleFactor}px;
+            --bomb-sheet-width: ${192 * spriteScaleFactor}px;`
     });
 }
 
@@ -127,7 +129,7 @@ function handleExplosions() {
 function handleExplosionsEffect() {
     let ischange = false
     Status.explosions = Status.explosions.filter(explo => {
-        if (Date.now() - explo.time > 450) {
+        if (Date.now() - explo.time > 1000) {
             ischange = true
             return false
         }
@@ -148,12 +150,10 @@ function vdmBombs(xgrid, ygrid) {
             style: `
                 width: ${Status.tileSize}px;
                 height: ${Status.tileSize}px;
-                position: absolute;
-                top: ${rect.top}px;
-                left: ${rect.left}px;
-                 --sprite-width: ${32 * spriteScaleFactor}px;
-                --sprite-height: ${32 * spriteScaleFactor}px;
-                --sprite-sheet-width: ${96 * spriteScaleFactor}px;`
+                transform: translate(${rect.left}px, ${rect.top}px);
+                 --bomb-width: ${32 * spriteScaleFactor}px;
+                --bomb-height: ${32 * spriteScaleFactor}px;
+                --bomb-sheet-width: ${96 * spriteScaleFactor}px;`
         }));
 }
 
@@ -275,18 +275,11 @@ export function updatePositons() {
 function CurrPlayer(pos = [1, 1]) {
     playerRegistry.currentPlayer = { position: pos };
 
-    function initGame() {
+    function initGame(ele) {
         if (xPos !== null || yPos !== null) return;
-
-        currPlayer = document.getElementById("current-player");
+        currPlayer = ele
         const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
         const tileRectInit = tileElementInit.getBoundingClientRect();
-        const tileElement = document.querySelector(`[data-row="${pos[0]}"][data-col="${pos[1]}"]`);
-        if (!tileElement) {
-            updateDebugInfo({ "Error": "Could not find initial tile for positioning" });
-            return;
-        }
-        const tileRect = tileElement.getBoundingClientRect();
 
         let diff = (Status.tileSize / 100) * 10;
 
@@ -368,7 +361,6 @@ function CurrPlayer(pos = [1, 1]) {
             walkable: tileElement ? (tileElement.id === "grass") : false
         };
     }
-
     function checkCorners(corners) {
         let cornerTiles = getPlayerTiles(corners[0].x, corners[0].y);
         let cornerTilesBool = cornerTiles.uniqueTiles.map(
@@ -617,8 +609,7 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
     return (
         vdm("div", {
             id: `other-player-${nam}`,
-            class: "other-player idle-down",
-            style: "position: absolute;",
+            class: "current-player idle-down",
             ref: initPlayer,
         },
             vdm("div", { class: "name_up_player" }, nam)

@@ -68,11 +68,11 @@ body {
 }
 
 .current-player {
+  top: 0;
+  left: 0;
   position: absolute;
   z-index: 10;
   background-image: url('Assets/character/walk-front.png');
-  /* background-image: url('Assets/Sprout Lands - Sprites - Basic pack/Characters/Basic Charakter Spritesheet.png'); */
-  /* background-repeat: no-repeat; */
   background-size: var(--sprite-sheet-width) auto;
   image-rendering: pixelated;
 }
@@ -130,68 +130,6 @@ body {
   animation: none;
 }
 
-/* ------------------other ----------- */
-.other-player {
-  position: absolute;
-  z-index: 10;
-  background-image: url('Assets/character/walk-front.png');
-  background-size: var(--sprite-sheet-width) auto;
-  image-rendering: pixelated;
-}
-
-@keyframes animaplayer {
-  from {
-    background-position-x: 0;
-  }
-
-  to {
-    background-position-x: calc(-1 * var(--sprite-sheet-width));
-  }
-}
-
-.other-player.right {
-  background-image: url('Assets/character/walk-right.png');
-  animation: animaplayer 0.5s steps(4) infinite;
-}
-
-.other-player.left {
-  background-image: url('Assets/character/walk-left.png');
-  animation: animaplayer 0.5s steps(4) infinite;
-}
-
-.other-player.top {
-  background-image: url('Assets/character/walk-back.png');
-  animation: animaplayer 0.5s steps(4) infinite;
-}
-
-.other-player.down {
-  background-image: url('Assets/character/walk-front.png');
-  animation: animaplayer 0.5s steps(4) infinite;
-}
-
-.other-player.idle-right {
-  background-image: url('Assets/character/walk-right.png');
-}
-
-.other-player.idle-left {
-  background-image: url('Assets/character/walk-left.png');
-
-}
-
-.other-player.idle-top {
-  background-image: url('Assets/character/walk-back.png');
-}
-
-.other-player.idle-down {
-  background-image: url('Assets/character/walk-front.png');
-}
-
-/* Default idle state */
-.other-player.idle {
-  background-image: url('Assets/character/walk-front.png');
-  animation: none;
-}
-
 .name_up_player {
   transform: translate(0, -20px);
   background-color: oldlace;
@@ -200,9 +138,13 @@ body {
 }
 
 .bomb {
+  top: 0;
+  left: 0;
   background-image: url('Assets/bomb/dynamite.png');
   image-rendering: pixelated;
-  animation: animaBomb 0.5s steps(4) infinite;
+  background-size: var(--bomb-sheet-width) auto;
+  position: absolute;
+  animation: animaBomb 1s steps(3) infinite;
 }
 
 @keyframes animaBomb {
@@ -211,6 +153,26 @@ body {
   }
 
   to {
-    background-position-x: calc(-4 * 32px);
+    background-position-x: calc(-1 * var(--bomb-sheet-width));
+  }
+}
+
+.explosion {
+  top: 0;
+  left: 0;
+  background-image: url('Assets/bomb/explosion_1row.png');
+  image-rendering: pixelated;
+  background-size: var(--bomb-sheet-width) auto;
+  position: absolute;
+  animation: animaExplosion 1s steps(6) forwards;
+}
+
+@keyframes animaExplosion {
+  from {
+    background-position-x: 0;
+  }
+
+  to {
+    background-position-x: calc(-1 * var(--bomb-sheet-width));
   }
 }
