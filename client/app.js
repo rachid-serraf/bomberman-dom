@@ -26,6 +26,7 @@ function createDebugPanel() {
   debugPanel.style.maxHeight = '150px';
   debugPanel.style.overflow = 'auto';
   debugPanel.style.zIndex = '1000';
+  document.body.appendChild(debugPanel);
   return debugPanel;
 }
 

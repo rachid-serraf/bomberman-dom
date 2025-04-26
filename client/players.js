@@ -101,12 +101,8 @@ function explosionEffect(top, left) {
                 exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
 
                 if (tileElement.id === 'tree') {
-                    // let mp = StateManagement.get().MapState.map
                     let row = tileElement.getAttribute('data-row')
                     let col = tileElement.getAttribute('data-col')
-                    // mp[row][col] = 11;
-                    // StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
-                    console.log("bomb treee=============");
 
                     ws.send(JSON.stringify({
                         type: "generet_item",
@@ -366,10 +362,15 @@ function CurrPlayer(pos = [1, 1]) {
                 walkable: false
             };
         }
-
+        let allowd = {
+            "grass": true,
+            "apple": true,
+            "corn": true,
+            "sombola": true
+        }
         return {
             id: tileElement.id,
-            walkable: tileElement ? (tileElement.id === "grass") : false
+            walkable: tileElement ? (allowd[tileElement.id] === true) : false
         };
     }
     function checkCorners(corners) {
@@ -505,6 +506,7 @@ function CurrPlayer(pos = [1, 1]) {
                 if (currentDirection !== direction) {
                     updatePlayerState("moving", direction);
                     Status.players[nickname] = { xPos, yPos }
+
                 }
                 sendPosition();
             } else if (isMoving) {
@@ -512,6 +514,22 @@ function CurrPlayer(pos = [1, 1]) {
                 sendPosition();
             }
             function sendPosition() {
+                const tiles = getPlayerTiles(xPos, yPos);
+                let xgrid = tiles.uniqueTiles[0].gridY + 1;
+                let ygrid = tiles.uniqueTiles[0].gridX + 1;
+                let tile = getTileInfo(xgrid, ygrid)
+                console.log(tile.id);
+                switch (tile.id) {
+                    case "apple":
+                        console.log(tile.id, "--------------------------------");
+                        break;
+                    case "corn":
+                        console.log(tile.id, "--------------------------------");
+                        break;
+                    case "sombola":
+                        console.log(tile.id, "--------------------------------");
+                        break;
+                }
                 ws.send(JSON.stringify({
                     type: "player_moveng",
                     xPos: xPos / Status.tileSize,
