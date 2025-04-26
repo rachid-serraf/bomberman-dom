@@ -87,6 +87,7 @@ let rooms = {
   // usersConnection: ,
   // },
 };
+let map = []
 
 wss.on("connection", (ws) => {
   let nickname = null;
@@ -160,7 +161,7 @@ wss.on("connection", (ws) => {
         let columns = 15;
         let por = [10, 10, 10, 10, 10, 10, 11, 11, 11, 11]
 
-        let map = [
+        map = [
           [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],
           [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
           [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
@@ -231,7 +232,23 @@ wss.on("connection", (ws) => {
       "set_bomb": function () {
         data.nickname = nickname
         broadcastToRoom(roomID, data, nickname)
+      },
+      "generet_item": function () {
+        let por = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1]
+        let random = Math.round(Math.random() * 9);
+        let item = 11
+        if (por[random] === 1) {
+          item = Math.round(Math.random() * (15 - 13)) + 13
+        }
+
+        broadcastToRoom(roomID, {
+          type: "set_item",
+          item,
+          row: data.row,
+          col: data.col,
+        }, nickname)
       }
+
     }
     WsHandelType[data.type]?.()
   });

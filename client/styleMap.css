@@ -20,7 +20,7 @@ body {
   background-size: cover;
   image-rendering: pixelated;
   display: inline-block;
-  background-repeat: no-repeat;
+  /* background-repeat: no-repeat; */
 }
 
 .toba {
@@ -69,4 +69,16 @@ body {
 
 .box {
   background-image: url('Assets/Sprout Lands - Sprites - Basic pack/Objects/Free_Chicken_House.png'), url('Assets/map/grass.png');
+}
+
+.apple {
+  background-image: url('Assets/item/apple.png'), url('Assets/map/grass.png');
+}
+
+.corn {
+  background-image: url('Assets/item/corn.png'), url('Assets/map/grass.png');
+}
+
+.sombola {
+  background-image: url('Assets/item/sombola.png'), url('Assets/map/grass.png');
 }

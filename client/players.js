@@ -101,9 +101,18 @@ function explosionEffect(top, left) {
                 exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
 
                 if (tileElement.id === 'tree') {
-                    let mp = StateManagement.get().MapState.map
-                    mp[tileElement.getAttribute('data-row')][tileElement.getAttribute('data-col')] = 11;
-                    StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
+                    // let mp = StateManagement.get().MapState.map
+                    let row = tileElement.getAttribute('data-row')
+                    let col = tileElement.getAttribute('data-col')
+                    // mp[row][col] = 11;
+                    // StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
+                    console.log("bomb treee=============");
+
+                    ws.send(JSON.stringify({
+                        type: "generet_item",
+                        row,
+                        col,
+                    }))
                 }
             }
         });

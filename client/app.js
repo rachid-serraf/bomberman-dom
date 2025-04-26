@@ -59,7 +59,10 @@ function Game() {
           9: "downRight",
           10: "tree",
           11: "grass",
-          12: "box"
+          12: "box",
+          13: "apple",
+          14: "corn",
+          15: "sombola"
         };
         const className = tileClasses[tileValue];
         tiles.push(vdm("div", {
@@ -206,7 +209,6 @@ function enter(event) {
         }, 100);
 
       }, true);
-      // renderComponent(Game)
     }
     if (data.type === "player_moveng") {
       Status.players[data.nickname] = { xPos: data.xPos, yPos: data.yPos }
@@ -216,7 +218,12 @@ function enter(event) {
       StateManagement.set({
         bombs: [...(StateManagement.get()?.bombs || []), data]
       });
-      // renderComponent(Game)
+    }
+    if (data.type === "set_item") {
+      console.log(data);
+      let mp = StateManagement.get().MapState.map
+      mp[data.row][data.col] = data.item
+      StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
     }
   };
 
