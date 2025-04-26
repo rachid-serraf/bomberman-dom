@@ -36,8 +36,8 @@ function chatting() {
 
 
 function waiting() {
-  console.log("waiting render");
-  console.log(EventSystem.events);
+  // console.log("waiting render");
+  // console.log(EventSystem.events);
 
   let players = room.players || []
   const maxPlayers = 4;

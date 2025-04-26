@@ -158,7 +158,7 @@ wss.on("connection", (ws) => {
       "creat_map": function () {
         let rows = 11;
         let columns = 15;
-        let por = [10, 11, 11, 11, 11, 11, 11, 11, 11, 11]
+        let por = [10, 10, 10, 10, 10, 10, 11, 11, 11, 11]
 
         let map = [
           [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],

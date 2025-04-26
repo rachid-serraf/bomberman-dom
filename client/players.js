@@ -101,7 +101,9 @@ function explosionEffect(top, left) {
                 exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
 
                 if (tileElement.id === 'tree') {
-                    // Handle tree destruction if needed
+                    let mp = StateManagement.get().MapState.map
+                    mp[tileElement.getAttribute('data-row')][tileElement.getAttribute('data-col')] = 11;
+                    StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
                 }
             }
         });
