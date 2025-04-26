@@ -385,4 +385,5 @@ export {
   EventSystem,
   Router,
   renderComponent,
+  render,
 };

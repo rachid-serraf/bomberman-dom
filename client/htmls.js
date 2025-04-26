@@ -3,8 +3,8 @@ import { EventSystem, vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
 
 function chatting() {
-  console.log("chatting render");
-  console.log(EventSystem.events);
+  // console.log("chatting render");
+  // console.log(EventSystem.events);
 
   return vdm("div", { class: "chat-container" }, [
     vdm("div", { class: "chat-header" }, [
@@ -36,8 +36,8 @@ function chatting() {
 
 
 function waiting() {
-  console.log("waiting render");
-  console.log(EventSystem.events);
+  // console.log("waiting render");
+  // console.log(EventSystem.events);
 
   let players = room.players || []
   const maxPlayers = 4;
@@ -72,14 +72,14 @@ function waiting() {
 }
 
 
-let testStyle  = {
-  cursor: "pointer",
-  fontSize: "30px"
-}
+// let testStyle  = {
+//   cursor: "pointer",
+//   fontSize: "30px"
+// }
 
 const waitingChattingPage = () => {
   return vdm("div", { class: "waiting-chatting-container" }, [
     vdm("div", { id: "leftSide" }, waiting()),
-    vdm("div", { id: "rightSide" ,  style: testStyle }, chatting()),
+    vdm("div", { id: "rightSide" }, chatting()),
   ]);
 }

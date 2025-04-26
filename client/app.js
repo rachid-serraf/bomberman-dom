@@ -73,8 +73,8 @@ function Game() {
   }
 
   const contanerRef = (container) => {
-    const containerWidth = window.innerWidth;
-    const containerHeight = window.innerHeight;
+    const containerWidth = window.innerWidth - 100;
+    const containerHeight = window.innerHeight - 100;
 
     const newTileSize = Math.min(
       Math.floor(containerWidth / MapState.columns),
@@ -107,6 +107,7 @@ function Game() {
     explo.push(vdmExplosion(exp))
   }
 
+
   return (
     vdm("div", {},
       vdm("div", { id: "game-container", ref: contanerRef },
@@ -115,6 +116,13 @@ function Game() {
       ...bombs,
       ...explo,
     ))
+}
+
+function gameLayout() {
+  return vdm("div", { class: "waiting-chatting-container" }, [
+    vdm("div", { id: "leftSide" }, Game()),
+    vdm("div", { id: "rightSide" }, chatting()),
+  ]);
 }
 
 // -------------------------- yassine -----------------------------------------
@@ -163,14 +171,14 @@ function enter(event) {
       if (data.type === "player_left" && room.players.length === 1) {
         left_time = 20
       }
-      // renderComponent(waitingChattingPage, false);
+
       StateManagement.set({
         waiting: data
       })
 
     } else if (data.type === "countdown") {
       left_time = data.timeLeft
-      // renderComponent(waitingChattingPage, false)
+
       StateManagement.set({
         waiting: data
       })
@@ -186,27 +194,32 @@ function enter(event) {
     } else if (data.type === "chat") {
       let is_mine = data.nickname === nickname
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
-
+     
       StateManagement.set({
         chat: data
       })
+
     }
     if (data.type === "map_Generet") {
       MapState = data
+
       EventSystem.add(window, 'resize', () => {
         if (window.isResizing) return;
         window.isResizing = true;
 
-        setRoot("leftSide")
-        renderComponent(Game);
+        // setRoot("app")
+        // renderComponent(gameLayout);
+
+        alert("back to your srceen size or refresh the page (game over)")
 
         setTimeout(() => {
-          updatePositons();
+          // updatePositons();
           window.isResizing = false;
-        }, 100);
+        }, 50);
       }, true);
-      
-      renderComponent(Game)
+
+      setRoot("app")
+      renderComponent(gameLayout)
     }
     if (data.type === "player_moveng") {
       SetOtherPlayerAndMove(true, data);
@@ -304,8 +317,3 @@ StateManagement.subscribe((state) => {
 
   lastState = StateManagement.get()
 })
-
-
-// state managment to work darori
-// khas ay event jdid tzidlo we7da b7al hadi
-// EventSystem.add(document.body, "click", () => { }, true)
