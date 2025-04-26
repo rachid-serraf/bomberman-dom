@@ -190,7 +190,6 @@ function enter(event) {
       StateManagement.set({
         chat: data
       })
-
     }
     if (data.type === "map_Generet") {
       MapState = data
@@ -198,14 +197,15 @@ function enter(event) {
         if (window.isResizing) return;
         window.isResizing = true;
 
+        setRoot("leftSide")
         renderComponent(Game);
 
         setTimeout(() => {
           updatePositons();
           window.isResizing = false;
         }, 100);
-
       }, true);
+      
       renderComponent(Game)
     }
     if (data.type === "player_moveng") {
@@ -293,13 +293,11 @@ router.setNotFound(() =>
 
 StateManagement.subscribe((state) => {
   if (state.chat !== lastState.chat) {
-    console.log("hna");
     setRoot('rightSide')
     renderComponent(chatting);
   }
 
   if (state.waiting !== lastState.waiting) {
-    console.log("lhih");
     setRoot('leftSide')
     renderComponent(waiting);
   }

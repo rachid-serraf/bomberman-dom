@@ -17,7 +17,7 @@
 
 
 /* Left Side: Waiting Players */
-.players-container {
+.players-container,#leftSide{
   width: 69vw;
   height: 100vh;
   display: flex;
@@ -28,7 +28,7 @@
 }
 
 /* Right Side: Chat */
-.chat-container {
+.chat-container,#rightSide{
   width: 29vw;
   height: 100vh;
   display: flex;
@@ -199,14 +199,14 @@ body{
   width: 100vw;
   height: 100vh;
 }
-.players-container {
+.players-container,#leftSide{
   width: 100vw;
   height: 100vh;
   margin: 0;
 
   padding: 0;
 }
-.chat-container {
+.chat-container,#rightSide {
   height: 100vh;
   width: 100vw;
   margin: 0;

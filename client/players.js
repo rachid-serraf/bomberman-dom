@@ -1,5 +1,5 @@
 import { Game, nickname, updateDebugInfo, ws } from "./app.js";
-import { EventSystem, renderComponent, vdm } from "./miniframework.js";
+import { EventSystem, renderComponent, setRoot, vdm } from "./miniframework.js";
 import { Status } from "./status.js";
 
 export { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion, bombsArray, explosionsArray }
@@ -474,7 +474,7 @@ function CurrPlayer(pos = [1, 1]) {
                 newYPos -= speedY;
                 direction = "top";
                 moved = true;
-            } else if (keysPressed["ArrowDown"]) {
+            } else if (keysPressed["ArrowDown"]) {                
                 newYPos += speedY;
                 direction = "down";
                 moved = true;
@@ -535,6 +535,7 @@ function CurrPlayer(pos = [1, 1]) {
             // updateDebugWithTiles();
             handleExplosions()
             if (handleExplosionsEffect()) {
+                setRoot("leftSide")
                 renderComponent(Game)
             }
             animationFrameId = requestAnimationFrame(gameLoop);
