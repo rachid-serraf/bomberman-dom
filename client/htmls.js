@@ -3,8 +3,8 @@ import { EventSystem, vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
 
 function chatting() {
-  console.log("chatting render");
-  console.log(EventSystem.events);
+  // console.log("chatting render");
+  // console.log(EventSystem.events);
 
   return vdm("div", { class: "chat-container" }, [
     vdm("div", { class: "chat-header" }, [

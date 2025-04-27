@@ -221,9 +221,14 @@ function enter(event) {
       });
     }
     if (data.type === "set_item") {
-      console.log(data);
+      // console.log(data);
       let mp = StateManagement.get().MapState.map
       mp[data.row][data.col] = data.item
+      StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
+    }
+    if (data.type === "get_item") {
+      let mp = StateManagement.get().MapState.map
+      mp[data.xgrid][data.ygrid] = 11
       StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
     }
   };

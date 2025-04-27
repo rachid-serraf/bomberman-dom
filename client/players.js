@@ -18,7 +18,6 @@ let currentDirection = "idle";
 let isMoving = false;
 let lastDirection = "down";
 let skipCorner = { x: 0, y: 0 };
-let bombPower = 2;
 let lastClass = ""
 
 function vdmExplosion(explo) {
@@ -50,7 +49,7 @@ function vdmExplosion(explo) {
     });
 }
 
-function explosionEffect(top, left) {
+function explosionEffect(top, left, bombPower = Status.bombPower) {
     let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
     let [fpvx, fnvx, fpvy, fnvy] = [false, false, false, false];
 
@@ -112,8 +111,6 @@ function explosionEffect(top, left) {
                 }
             }
         });
-        console.log(Status.players);
-
         StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
     }
 }
@@ -122,7 +119,7 @@ function handleExplosions(bombsfiler) {
     let ischange = false
     bombsfiler = bombsfiler.filter(bomb => {
         if (Date.now() - bomb.time > Status.TIME_EXPLOSION_BOMB) {
-            explosionEffect(bomb.xgrid, bomb.ygrid)
+            explosionEffect(bomb.xgrid, bomb.ygrid, bomb.bombPower)
             if (bomb.nickname === nickname) {
                 Status.numberCanSetBomb += 1
             }
@@ -172,6 +169,7 @@ function placeAbomb(xgrid, ygrid) {
     Status.numberCanSetBomb -= 1
     ws.send(JSON.stringify({
         type: "set_bomb",
+        bombPower: Status.bombPower,
         xgrid,
         ygrid,
         time: now
@@ -466,8 +464,8 @@ function CurrPlayer(pos = [1, 1]) {
     function startGameLoop() {
         function gameLoop(timetamp) {
             // Update speed dynamically based on current tile size
-            speedX = Status.tileSize / 20;
-            speedY = Status.tileSize / 20;
+            speedX = Status.tileSize / Status.devcSpeed;
+            speedY = Status.tileSize / Status.devcSpeed;
 
             let newXPos = xPos;
             let newYPos = yPos;
@@ -517,18 +515,33 @@ function CurrPlayer(pos = [1, 1]) {
                 const tiles = getPlayerTiles(xPos, yPos);
                 let xgrid = tiles.uniqueTiles[0].gridY + 1;
                 let ygrid = tiles.uniqueTiles[0].gridX + 1;
-                let tile = getTileInfo(xgrid, ygrid)
-                console.log(tile.id);
+                const tile = document.querySelector(`[data-row="${xgrid}"][data-col="${ygrid}"]`);
                 switch (tile.id) {
                     case "apple":
-                        console.log(tile.id, "--------------------------------");
+                        Status.numberCanSetBomb++
+                        sendGetItem(tile.id)
+                        console.log("numbber bomb", Status.numberCanSetBomb, "--------------------------------");
                         break;
                     case "corn":
-                        console.log(tile.id, "--------------------------------");
+                        Status.bombPower++
+                        sendGetItem(tile.id)
+                        console.log("bomb power", Status.bombPower, "--------------------------------");
                         break;
                     case "sombola":
-                        console.log(tile.id, "--------------------------------");
+                        if (Status.devcSpeed > 5) {
+                            Status.devcSpeed -= 3
+                        }
+                        sendGetItem(tile.id)
+                        console.log("speed", Status.devcSpeed, "--------------------------------");
                         break;
+                }
+                function sendGetItem(nameItem) {
+                    ws.send(JSON.stringify({
+                        type: "get_item",
+                        nameItem,
+                        xgrid,
+                        ygrid
+                    }))
                 }
                 ws.send(JSON.stringify({
                     type: "player_moveng",

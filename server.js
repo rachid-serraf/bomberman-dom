@@ -247,6 +247,9 @@ wss.on("connection", (ws) => {
           row: data.row,
           col: data.col,
         })
+      },
+      "get_item": function () {
+        broadcastToRoom(roomID, data)
       }
 
     }

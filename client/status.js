@@ -2,5 +2,7 @@ export const Status = {
   tileSize: 0, // this var have value in function (Game => contanerRef)
   TIME_EXPLOSION_BOMB: 2000,
   numberCanSetBomb: 1,
-  players: {}
+  players: {},
+  bombPower: 2,
+  devcSpeed: 20
 }
