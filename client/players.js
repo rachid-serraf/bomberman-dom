@@ -95,6 +95,7 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
         ];
 
         tileElements.forEach(tileElement => {
+            let i = 0;
             if (tileElement && (tileElement.id === 'grass' || tileElement.id === 'tree')) {
                 const rect = tileElement.getBoundingClientRect();
                 exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
@@ -108,6 +109,25 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                         row,
                         col,
                     }))
+                }
+                let playersPos = Status.players;
+                for (const [key, value] of Object.entries(playersPos)) {
+                    // console.log(key, value);
+
+                    let playerPos = getPlayerTiles(value.xPos, value.yPos)
+
+                    // console.log("playerPosX: ", playerPos.uniqueTiles);
+                    playerPos.uniqueTiles.forEach((tile) => {
+                        // console.log(i, tileElement.getAttribute('data-row'), tileElement.getAttribute('data-col'), tile.gridX, tile.gridY);
+                        // i++;
+                        if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col')) {
+                            ws.send(JSON.stringify({
+                                type: "player_explosion",
+                                nickname: key,
+                            }))
+                            console.log("player killed killed killed!!!!!!!!!: ", key, "  ", tileElement.getAttribute('data-row'), tileElement.getAttribute('data-col'), tile.gridY + 1, tile.gridX + 1);
+                        }
+                    })
                 }
             }
         });
@@ -503,8 +523,6 @@ function CurrPlayer(pos = [1, 1]) {
             if (moved) {
                 if (currentDirection !== direction) {
                     updatePlayerState("moving", direction);
-                    Status.players[nickname] = { xPos, yPos }
-
                 }
                 sendPosition();
             } else if (isMoving) {
@@ -512,6 +530,8 @@ function CurrPlayer(pos = [1, 1]) {
                 sendPosition();
             }
             function sendPosition() {
+                Status.players[nickname] = { xPos, yPos }
+
                 const tiles = getPlayerTiles(xPos, yPos);
                 let xgrid = tiles.uniqueTiles[0].gridY + 1;
                 let ygrid = tiles.uniqueTiles[0].gridX + 1;

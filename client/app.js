@@ -78,8 +78,8 @@ function Game() {
   }
 
   const contanerRef = (container) => {
-    const containerWidth = window.innerWidth - 120;
-    const containerHeight = window.innerHeight - 120;
+    const containerWidth = window.innerWidth - 70;
+    const containerHeight = window.innerHeight - 70;
 
     const newTileSize = Math.min(
       Math.floor(containerWidth / MapState.columns),
