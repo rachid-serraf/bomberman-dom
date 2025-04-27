@@ -78,8 +78,8 @@ function Game() {
   }
 
   const contanerRef = (container) => {
-    const containerWidth = window.innerWidth - 80;
-    const containerHeight = window.innerHeight - 80;
+    const containerWidth = window.innerWidth - 120;
+    const containerHeight = window.innerHeight - 120;
 
     const newTileSize = Math.min(
       Math.floor(containerWidth / MapState.columns),
@@ -209,8 +209,8 @@ function enter(event) {
         if (window.isResizing) return;
         window.isResizing = true;
 
-        setRoot("leftSide")
-        renderComponent(Game);
+        setRoot("app")
+        renderComponent(gameLayout);
 
         setTimeout(() => {
           updatePositons();
@@ -316,9 +316,15 @@ router.setNotFound(() =>
 )
 
 StateManagement.subscribe((state) => {
+  const path = window.location.pathname
   if (state.chat !== lastState.chat) {
-    setRoot('rightSide')
-    renderComponent(chatting);
+    if (path === "/waiting") {
+      setRoot('rightSide')
+      renderComponent(chatting);
+    } else {
+      setRoot('app')
+      renderComponent(gameLayout);
+    }
   }
 
   if (state.waiting !== lastState.waiting) {
