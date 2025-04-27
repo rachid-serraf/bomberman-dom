@@ -1,5 +1,5 @@
 import { Game, nickname, updateDebugInfo, ws } from "./app.js";
-import { EventSystem, renderComponent, StateManagement, vdm } from "./miniframework.js";
+import { EventSystem, renderComponent, StateManagement, vdm, getId } from "./miniframework.js";
 import { Status } from "./status.js";
 
 export { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion }
@@ -19,6 +19,8 @@ let isMoving = false;
 let lastDirection = "down";
 let skipCorner = { x: 0, y: 0 };
 let lastClass = ""
+
+let startTime = 0
 
 function vdmExplosion(explo) {
     let top
@@ -337,6 +339,7 @@ function CurrPlayer(pos = [1, 1]) {
         EventSystem.add(document, "keydown", (e) => { keysPressed[e.key] = true; });
         EventSystem.add(document, "keyup", (e) => { keysPressed[e.key] = false; });
 
+        startTime = Date.now();
         startGameLoop();
         playerRegistry.oldTileSize = Status.tileSize;
 
@@ -481,6 +484,11 @@ function CurrPlayer(pos = [1, 1]) {
         }
     }
 
+    //timer
+    function formatNumberTimer(num) {
+        return (num < 10 ? '0' : '') + num;
+    }
+
     function startGameLoop() {
         function gameLoop(timetamp) {
             // Update speed dynamically based on current tile size
@@ -588,6 +596,25 @@ function CurrPlayer(pos = [1, 1]) {
 
             let { ischangeExp, exploFilter } = handleExplosionsEffect(StateManagement.get()?.explosions || [])
             if (ischangeExp) StateManagement.set({ explosions: exploFilter })
+
+
+            //timer --------------------------------------------
+
+            const cTime = Date.now();
+            const eTime = cTime - startTime;
+
+            const minutes = Math.floor(eTime / 60000);
+            const seconds = Math.floor((eTime % 60000) / 1000);
+            const milliseconds = Math.floor((eTime % 1000) / 10);
+
+            const timeDisplay =
+                formatNumberTimer(minutes) + ':' +
+                formatNumberTimer(seconds) + ':' +
+                formatNumberTimer(milliseconds);
+
+            getId('timer-display', timeDisplay, true, false);
+
+            // end timer ----------------------------------------------
 
 
             animationFrameId = requestAnimationFrame(gameLoop);

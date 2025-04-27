@@ -379,6 +379,16 @@ class Router {
   }
 }
 
+function getId(id, data = "", set = false , html = false) {
+  if (set) {
+    if (document.getElementById(id)) {
+      (html) ? document.getElementById(id).innerHTML = data : document.getElementById(id).textContent = data
+    }
+  }else{
+    return document.getElementById(id)
+  }
+}
+
 export {
   vdm,
   setRoutes,
@@ -387,4 +397,5 @@ export {
   EventSystem,
   Router,
   renderComponent,
+  getId
 };

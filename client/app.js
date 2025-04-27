@@ -114,6 +114,17 @@ function Game() {
 
   return (
     vdm("div", {},
+      vdm("div", { id: "counterSide" },
+        vdm("div", { class: "counter-container" },
+          vdm("div", { class: "lives-section" },
+            vdm("div", { class: "lives-hearts", id: "lives-hearts" }, "❤️❤️❤️")
+          ),
+          vdm("div", { class: "timer-section" },
+            vdm("div", { class: "timer-icon" }, "⏱️"),
+            vdm("div", { class: "timer-display", id: "timer-display" }, "00:00:00")
+          )
+        )
+      ),
       vdm("div", { id: "game-container", ref: contanerRef },
         ...draw()),
       ...players,
@@ -337,6 +348,24 @@ StateManagement.subscribe((state) => {
     setRoot('app')
     renderComponent(gameLayout)
   }
+
+  // const path = window.location.pathname
+  // if (path === "/waiting") {
+  //   if (state.chat !== lastState.chat) {
+  //     setRoot('rightSide')
+  //     renderComponent(chatting);
+  //   }
+  //   if (state.waiting !== lastState.waiting) {
+  //     setRoot('leftSide')
+  //     renderComponent(waiting);
+  //   }
+  // } else {
+  //   setRoot('app')
+  //   renderComponent(gameLayout);
+  // }
+
+  // console.log(EventSystem.events);
+
   lastState = StateManagement.get()
 })
 
