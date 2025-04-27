@@ -78,8 +78,8 @@ function Game() {
   }
 
   const contanerRef = (container) => {
-    const containerWidth = window.innerWidth;
-    const containerHeight = window.innerHeight;
+    const containerWidth = window.innerWidth - 80;
+    const containerHeight = window.innerHeight - 80;
 
     const newTileSize = Math.min(
       Math.floor(containerWidth / MapState.columns),
@@ -120,6 +120,13 @@ function Game() {
       ...bombs,
       ...explo,
     ))
+}
+
+function gameLayout() {
+  return vdm("div", { class: "waiting-chatting-container" }, [
+    vdm("div", { id: "leftSide" }, Game()),
+    vdm("div", { id: "rightSide" }, chatting()),
+  ]);
 }
 
 // -------------------------- yassine -----------------------------------------
@@ -202,6 +209,7 @@ function enter(event) {
         if (window.isResizing) return;
         window.isResizing = true;
 
+        setRoot("leftSide")
         renderComponent(Game);
 
         setTimeout(() => {
@@ -298,7 +306,7 @@ function EmotesCat(emoteNumber, message, random = true) {
 router
   .add("/", NewUserPage)
   .add("/waiting", waitingChattingPage)
-  .add("/game", Game)
+  .add("/game", gameLayout)
 
 router.setNotFound(() =>
   vdm("div", {},
@@ -321,7 +329,7 @@ StateManagement.subscribe((state) => {
     state.bombs !== lastState.bombs ||
     state.explosions !== lastState.explosions) {
     setRoot('app')
-    renderComponent(Game)
+    renderComponent(gameLayout)
   }
   lastState = StateManagement.get()
 })
