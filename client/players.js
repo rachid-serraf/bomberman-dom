@@ -97,7 +97,6 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
         ];
 
         tileElements.forEach(tileElement => {
-            let i = 0;
             if (tileElement && (tileElement.id === 'grass' || tileElement.id === 'tree')) {
                 const rect = tileElement.getBoundingClientRect();
                 exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
@@ -539,8 +538,15 @@ function CurrPlayer(pos = [1, 1]) {
             }
             function sendPosition() {
                 Status.players[nickname] = { xPos, yPos }
-
+                ws.send(JSON.stringify({
+                    type: "player_moveng",
+                    xPos: xPos / Status.tileSize,
+                    yPos: yPos / Status.tileSize,
+                    direction: lastClass,
+                }));
                 const tiles = getPlayerTiles(xPos, yPos);
+                if (tiles.uniqueTiles.length !== 1) return
+
                 let xgrid = tiles.uniqueTiles[0].gridY + 1;
                 let ygrid = tiles.uniqueTiles[0].gridX + 1;
                 const tile = document.querySelector(`[data-row="${xgrid}"][data-col="${ygrid}"]`);
@@ -571,12 +577,7 @@ function CurrPlayer(pos = [1, 1]) {
                         ygrid
                     }))
                 }
-                ws.send(JSON.stringify({
-                    type: "player_moveng",
-                    xPos: xPos / Status.tileSize,
-                    yPos: yPos / Status.tileSize,
-                    direction: lastClass,
-                }));
+
             }
 
             isMoving = moved;
