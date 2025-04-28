@@ -8,7 +8,7 @@ import { updatePositons } from "./players.js";
 
 setRoot("app")
 const router = new Router(renderComponent)
-export { room, left_time, nickname, sendMessage, messages, ws, Game }
+export { room, left_time, nickname, sendMessage, messages, ws, Game, router }
 
 
 let lastState = {}

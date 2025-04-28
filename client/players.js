@@ -1,4 +1,4 @@
-import { nickname, ws } from "./app.js";
+import { nickname, router, ws } from "./app.js";
 import { StateManagement, vdm, getId, EventSystem } from "./miniframework.js";
 import { Status } from "./status.js";
 
@@ -105,7 +105,6 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                     let playerPos = getPlayerTiles(value.xPos, value.yPos)
 
                     playerPos.uniqueTiles.forEach((tile) => {
-                        // console.log(key, tile.gridY, tile.gridX, tileElement.getAttribute('data-row'), tileElement.getAttribute('data-col'), till.uniqueTiles, "-----------------------------");
                         if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col') && !flage) {
 
                             Status.life[key] -= 1
