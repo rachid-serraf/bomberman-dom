@@ -1,4 +1,4 @@
-import { chatting, waitingChattingPage, waiting } from "./htmls.js";
+import { chatting, waitingChattingPage, waiting, endGame } from "./htmls.js";
 import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
@@ -209,8 +209,9 @@ function enter(event) {
       let is_mine = data.nickname === nickname
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
 
+
       StateManagement.set({
-        chat: data
+        chat: data,
       })
 
     }
@@ -342,11 +343,22 @@ StateManagement.subscribe((state) => {
     setRoot('leftSide')
     renderComponent(waiting);
   }
+
   if (state.MapState !== lastState.MapState ||
     state.bombs !== lastState.bombs ||
     state.explosions !== lastState.explosions) {
     setRoot('app')
     renderComponent(gameLayout)
+  }
+
+  // StateManagement.set({endGame : {type:"win"}})
+  if (state.endGame !== lastState.endGame) {
+    setRoot('app')
+    if (state.endGame.type === "loss") {
+      renderComponent(() => endGame("loss"))
+    } else {
+      renderComponent(() => endGame("win"))
+    }
   }
 
   // const path = window.location.pathname
