@@ -23,19 +23,7 @@ let lastClass = ""
 let startTime = 0
 
 function vdmExplosion(explo) {
-    let top
-    let left
-    if (explo.xgrid && explo.ygrid) {
-        const tileElement = document.querySelector(
-            `[data-row="${explo.xgrid}"][data-col="${explo.ygrid}"]`
-        );
-        const rect = tileElement?.getBoundingClientRect();
-        top = rect.top
-        left = rect.left
-    } else {
-        top = explo.top
-        left = explo.left
-    }
+
     const spriteScaleFactor = Status.tileSize / 32;
 
     return vdm("div", {
@@ -44,7 +32,7 @@ function vdmExplosion(explo) {
         style: `
             width: ${Status.tileSize}px;
             height: ${Status.tileSize}px;
-            transform: translate(${left}px, ${top}px);
+            transform: translate(${explo.left}px, ${explo.top}px);
             --bomb-width: ${32 * spriteScaleFactor}px;
             --bomb-height: ${32 * spriteScaleFactor}px;
             --bomb-sheet-width: ${192 * spriteScaleFactor}px;`
@@ -52,13 +40,15 @@ function vdmExplosion(explo) {
 }
 
 function explosionEffect(top, left, bombPower = Status.bombPower) {
+    // let tileElements = []
     let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
     let [fpvx, fnvx, fpvy, fnvy] = [false, false, false, false];
 
     const time = Date.now();
-    let exploAdd = [{ nickname, xgrid: top, ygrid: left, time }]
+    let exploAdd = []
+    //  = [{ nickname, xgrid: top, ygrid: left, time }]
 
-    for (let index = 1; index < bombPower; index++) {
+    for (let index = 0; index < bombPower; index++) {
         if (fpvx === false) {
             tileElementPositiveVx = document.querySelector(
                 `[data-row="${top}"][data-col="${left + index}"]`
@@ -113,11 +103,8 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                 }
                 let playersPos = Status.players;
                 for (const [key, value] of Object.entries(playersPos)) {
-                    // console.log(key, value);
-
                     let playerPos = getPlayerTiles(value.xPos, value.yPos)
 
-                    // console.log("playerPosX: ", playerPos.uniqueTiles);
                     playerPos.uniqueTiles.forEach((tile) => {
                         // console.log(i, tileElement.getAttribute('data-row'), tileElement.getAttribute('data-col'), tile.gridX, tile.gridY);
                         // i++;
@@ -261,8 +248,8 @@ export function updatePositons() {
 
                 if (ratio !== 1 && xPos !== null && yPos !== null) {
                     // Scale the position values by the tile size ratio
-                    xPos = xPos * ratio;
-                    yPos = yPos * ratio;
+                    xPos = Math.max(xPos * ratio, 0);
+                    yPos = Math.max(yPos * ratio, 0);
                     currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
                 }
             }
