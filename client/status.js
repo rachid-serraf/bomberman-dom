@@ -4,5 +4,12 @@ export const Status = {
   numberCanSetBomb: 1,
   players: {},
   bombPower: 2,
-  devcSpeed: 20
+  devcSpeed: 20,
+  allowd: {
+    "grass": true,
+    "apple": true,
+    "corn": true,
+    "sombola": true
+  },
+  life: {},
 }

@@ -1,5 +1,5 @@
-import { Game, nickname, updateDebugInfo, ws } from "./app.js";
-import { EventSystem, renderComponent, StateManagement, vdm, getId } from "./miniframework.js";
+import { nickname, ws } from "./app.js";
+import { StateManagement, vdm, getId, EventSystem } from "./miniframework.js";
 import { Status } from "./status.js";
 
 export { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion }
@@ -38,15 +38,15 @@ function vdmExplosion(explo) {
             --bomb-sheet-width: ${192 * spriteScaleFactor}px;`
     });
 }
+let i = 0;
 
 function explosionEffect(top, left, bombPower = Status.bombPower) {
-    // let tileElements = []
     let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
     let [fpvx, fnvx, fpvy, fnvy] = [false, false, false, false];
 
     const time = Date.now();
     let exploAdd = []
-    //  = [{ nickname, xgrid: top, ygrid: left, time }]
+    let flage = 0;
 
     for (let index = 0; index < bombPower; index++) {
         if (fpvx === false) {
@@ -85,9 +85,8 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
             tileElementPositiveVy,
             tileElementNegativeVy
         ];
-
         tileElements.forEach(tileElement => {
-            if (tileElement && (tileElement.id === 'grass' || tileElement.id === 'tree')) {
+            if (tileElement && (tileElement.id === 'tree' || Status.allowd[tileElement.id])) {
                 const rect = tileElement.getBoundingClientRect();
                 exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
 
@@ -106,14 +105,26 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                     let playerPos = getPlayerTiles(value.xPos, value.yPos)
 
                     playerPos.uniqueTiles.forEach((tile) => {
-                        // console.log(i, tileElement.getAttribute('data-row'), tileElement.getAttribute('data-col'), tile.gridX, tile.gridY);
-                        // i++;
-                        if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col')) {
-                            ws.send(JSON.stringify({
-                                type: "player_explosion",
-                                nickname: key,
-                            }))
-                            console.log("player killed killed killed!!!!!!!!!: ", key, "  ", tileElement.getAttribute('data-row'), tileElement.getAttribute('data-col'), tile.gridY + 1, tile.gridX + 1);
+                        // console.log(key, tile.gridY, tile.gridX, tileElement.getAttribute('data-row'), tileElement.getAttribute('data-col'), till.uniqueTiles, "-----------------------------");
+                        if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col') && !flage) {
+
+                            Status.life[key] -= 1
+                            console.log(key, value);
+
+                            if (Status.life[key] <= 0) {
+                                if (key === nickname) {
+                                    router.link("/")
+                                    return
+                                }
+                                let players = StateManagement.get().MapState.players
+                                delete players[nickname]
+
+                                StateManagement.set({ MapState: { ...StateManagement.get().MapState, players: players } })
+                                console.log("delet player", key, "from", StateManagement.get().MapState.players);
+                                // cancelAnimationFrame(animationFrameId)
+                            }
+
+                            flage = 1;
                         }
                     })
                 }
@@ -317,10 +328,10 @@ function CurrPlayer(pos = [1, 1]) {
             currPlayer.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
 
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
-            Status.players[nickname] = { xPos, yPos }
             updatePlayerState("idle");
+            Status.players[nickname] = { xPos, yPos }
         }
-
+        // const ss = (e) => { keysPressed[e.key] = true; }
         debugInfo["Player Size"] = `Width: ${playerWidth}, Height: ${playerHeight}`;
         EventSystem.add(document, "keydown", (e) => { keysPressed[e.key] = true; });
         EventSystem.add(document, "keyup", (e) => { keysPressed[e.key] = false; });
@@ -369,15 +380,10 @@ function CurrPlayer(pos = [1, 1]) {
                 walkable: false
             };
         }
-        let allowd = {
-            "grass": true,
-            "apple": true,
-            "corn": true,
-            "sombola": true
-        }
+
         return {
             id: tileElement.id,
-            walkable: tileElement ? (allowd[tileElement.id] === true) : false
+            walkable: tileElement ? (Status.allowd[tileElement.id] === true) : false
         };
     }
     function checkCorners(corners) {
@@ -650,6 +656,7 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
         playerEl.style.transform = `translate(${(data.xPos * Status.tileSize)}px, ${(data.yPos * Status.tileSize)}px)`;
         playerEl.classList.remove("right", "left", "top", "down", "idle", "idle-right", "idle-left", "idle-top", "idle-down");
         playerEl.classList.add(data.direction);
+        Status.players[nam] = { xPos: data.xPos * Status.tileSize, yPos: data.yPos * Status.tileSize }
     }
 
     function initPlayer(ele) {
@@ -673,12 +680,12 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
                 let xPos = ((initialPos[1] - 1) * Status.tileSize)
                 let yPos = ((initialPos[0] - 1) * Status.tileSize)
                 playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
-                Status.players[nam] = { xPos, yPos }
 
                 const spriteScaleFactor = playerHeight / 32;
                 playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
                 playerEl.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
                 playerEl.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
+                Status.players[nam] = { xPos, yPos }
             }
         }
 

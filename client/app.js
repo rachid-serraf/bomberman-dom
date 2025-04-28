@@ -8,39 +8,15 @@ import { updatePositons } from "./players.js";
 
 setRoot("app")
 const router = new Router(renderComponent)
-export { room, left_time, nickname, sendMessage, messages, updateDebugInfo, ws, Game }
+export { room, left_time, nickname, sendMessage, messages, ws, Game }
 
-function createDebugPanel() {
-  const debugPanel = document.createElement('div');
-  debugPanel.id = 'debug-panel';
-  debugPanel.style.position = 'absolute';
-  debugPanel.style.bottom = '10px';
-  debugPanel.style.left = '10px';
-  debugPanel.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-  debugPanel.style.color = 'white';
-  debugPanel.style.padding = '10px';
-  debugPanel.style.borderRadius = '5px';
-  debugPanel.style.fontFamily = 'monospace';
-  debugPanel.style.fontSize = '12px';
-  debugPanel.style.maxWidth = '300px';
-  debugPanel.style.maxHeight = '150px';
-  debugPanel.style.overflow = 'auto';
-  debugPanel.style.zIndex = '1000';
-  document.body.appendChild(debugPanel);
-  return debugPanel;
-}
-
-function updateDebugInfo(info) {
-  const debugPanel = document.getElementById('debug-panel') || createDebugPanel();
-  debugPanel.innerHTML = Object.entries(info)
-    .map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`)
-    .join('');
-}
 
 let lastState = {}
-
+let first = true
 function Game() {
+
   let MapState = StateManagement.get().MapState
+  // console.log(MapState);
 
   if (!MapState) return vdm("div", {}, "loding map...")
   function draw() {
@@ -78,8 +54,9 @@ function Game() {
   }
 
   const contanerRef = (container) => {
-    const containerWidth = window.innerWidth - 70;
-    const containerHeight = window.innerHeight - 70;
+
+    const containerWidth = window.innerWidth - window.innerWidth * 0.30;
+    const containerHeight = window.innerHeight - window.innerHeight * 0.30;
 
     const newTileSize = Math.min(
       Math.floor(containerWidth / MapState.columns),
@@ -92,12 +69,21 @@ function Game() {
 
     container.style.gridTemplateRows = `repeat(${MapState.rows}, ${Status.tileSize}px)`;
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${Status.tileSize}px)`;
+    // updatePositons();
+
   }
 
   let players = [];
 
   for (let [nam, position] of Object.entries(MapState.players)) {
+
+    if (first) {
+      Status.life[nam] = 3
+    }
+
     if (nam === nickname) {
+      console.log(nam, nickname);
+
       players.push(CurrPlayer(position));
     } else {
       players.push(SetOtherPlayerAndMove(false, null, nam, position));
@@ -111,7 +97,7 @@ function Game() {
   for (const exp of StateManagement.get()?.explosions || []) {
     explo.push(vdmExplosion(exp))
   }
-
+  first = false
   return (
     vdm("div", {},
       vdm("div", { id: "counterSide" },
@@ -166,8 +152,9 @@ function enter(event) {
     alert("Nickname must be 2 characters or more.");
     return;
   }
-  //"ws://10.1.13.5:8080"
-  ws = new WebSocket("/ws");
+  //"ws://10.1.13.5:8080" 10.1.13.5 
+
+  ws = new WebSocket("ws://10.1.13.5:8080");
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {
@@ -185,14 +172,12 @@ function enter(event) {
       if (data.type === "player_left" && room.players.length === 1) {
         left_time = 20
       }
-      // renderComponent(waitingChattingPage, false);
       StateManagement.set({
         waiting: data
       })
 
     } else if (data.type === "countdown") {
       left_time = data.timeLeft
-      // renderComponent(waitingChattingPage, false)
       StateManagement.set({
         waiting: data
       })
@@ -231,8 +216,8 @@ function enter(event) {
       }, true);
     }
     if (data.type === "player_moveng") {
-      Status.players[data.nickname] = { xPos: data.xPos, yPos: data.yPos }
-      SetOtherPlayerAndMove(true, data);
+      // Status.players[data.nickname] = { xPos: data.xPos, yPos: data.yPos }
+      SetOtherPlayerAndMove(true, data, data.nickname);
     }
     if (data.type === "set_bomb") {
       StateManagement.set({
