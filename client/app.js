@@ -2,9 +2,10 @@ import { chatting, waitingChattingPage, waiting, endGame } from "./htmls.js";
 import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
-import { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion } from "./players.js";
+import { CurrPlayer, SetOtherPlayerAndMove } from "./players.js";
 import { Status } from "./status.js";
 import { updatePositons } from "./players.js";
+import { vdmBombs, vdmExplosion } from "./bombEffect.js";
 
 setRoot("app")
 const router = new Router(renderComponent)
