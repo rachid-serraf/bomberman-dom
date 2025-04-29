@@ -1,4 +1,4 @@
-export { waitingChattingPage, chatting , waiting };
+export { waitingChattingPage, chatting, waiting };
 import { EventSystem, vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
 
@@ -61,7 +61,7 @@ function waiting() {
     ])
   );
 
-  return vdm("div", {class: "players-container" }, [
+  return vdm("div", { class: "players-container" }, [
     vdm("h1", { class: "waiting-title" }, [`left Time ${left_time} Seconds`]),
     vdm("h1", { class: "waiting-title" }, [`Players (${players.length}/4)`]),
     vdm("div", { class: "players-list" }, [
@@ -72,7 +72,7 @@ function waiting() {
 }
 
 
-let testStyle  = {
+let testStyle = {
   cursor: "pointer",
   fontSize: "30px"
 }
@@ -80,6 +80,41 @@ let testStyle  = {
 const waitingChattingPage = () => {
   return vdm("div", { class: "waiting-chatting-container" }, [
     vdm("div", { id: "leftSide" }, waiting()),
-    vdm("div", { id: "rightSide" ,  style: testStyle }, chatting()),
+    vdm("div", { id: "rightSide", style: testStyle }, chatting()),
   ]);
 }
+
+
+export function endGame(type = "win") {
+  let msgTitle = "You Win!"
+  let idTitle = "winMsg"
+  let msgCon = "congrate 🎉🥳🎊🎁"
+  if (type == "loss") {
+    msgTitle = "You Loss!"
+    idTitle = "lossMsg"
+    msgCon = "good luck next time"
+  }
+
+  return vdm(
+    "div",
+    {},
+    vdm("div", { id: "overlay" }),
+    vdm(
+      "div",
+      { id: "popup", class: "pixel2" },
+      vdm("div", { id: `${idTitle}` }, `${msgTitle}`),
+      vdm("button", { class: "btn_add_name", onClick: () => location.reload() }, "replay"),
+      vdm(
+        "div",
+        { class: "contaner_emotes" },
+        vdm("div", { class: "emotes_cat" }),
+        vdm(
+          "div",
+          { class: "message_emotes" },
+          vdm("p", {}, `${msgCon}`)
+        )
+      )
+    )
+  )
+}
+

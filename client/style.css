@@ -282,3 +282,93 @@
     width: 100%;
   }
 }
+
+
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: 50%;
+  z-index: 19;
+}
+
+#popup {
+  position: fixed;
+  top: 25%;
+  left: 25%;
+  width: 50%;
+  z-index: 20;
+  border-radius: 30px;
+}
+
+@media (max-width: 688px) {
+  #popup {
+    top: 5%;
+    left: 5%;
+    width: 90%;
+  }
+}
+
+#winMsg {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 48px;
+  font-weight: bold;
+  color: #0fc55b;
+  text-align: center;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 198, 198, 0.8);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  animation: pulse 1.5s infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    color: #0fc55b;
+  }
+
+  50% {
+    transform: scale(1.1);
+    color: #1ed66a;
+  }
+
+  100% {
+    transform: scale(1);
+    color: #0fc55b;
+  }
+}
+
+
+#lossMsg {
+  font-family: 'Press Start 2P', cursive;
+  font-size: 48px;
+  font-weight: bold;
+  color: #c5490f;
+  text-align: center;
+  text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.7), 0 0 25px rgba(255, 198, 198, 0.8);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  animation: pulse2 1.5s infinite;
+  margin-bottom: 30px;
+}
+
+@keyframes pulse2 {
+  0% {
+    transform: scale(1);
+    color: #c5490f;
+  }
+
+  50% {
+    transform: scale(1.1);
+    color: #e05717;
+  }
+
+  100% {
+    transform: scale(1);
+    color: #c5490f;
+  }
+}
