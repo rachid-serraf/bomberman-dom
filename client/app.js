@@ -81,16 +81,30 @@ function Game() {
       Status.life[nam] = 3
     }
 
-    if (Status.playersDead[nam] === undefined) {
-      if (nam === nickname) {
-        players.push(CurrPlayer(position));
-      } else {
-        console.log(nam, Status.playersDead[nam]);
-        console.log("dead players", Status.playersDead);
-        console.log("all players", Status.players);
-        console.log("------------------------------------------------------");
-        players.push(SetOtherPlayerAndMove(false, null, nam, position));
+    // if (!Status.playersDead[nam]) {
+    //   if (nam === nickname) {
+    //     players.push(CurrPlayer(position));
+    //   } else {
+    //     players.push(SetOtherPlayerAndMove(false, null, nam, position));
+    //   }
+    // }
+
+
+    if (nam === nickname) {
+      const playerElCurr = CurrPlayer(position);
+      if (Status.playersDead[nam]) {
+        playerElCurr.attrs.class += " dead-player"
       }
+
+      players.push(playerElCurr);
+    } else {
+      const playerElement = SetOtherPlayerAndMove(false, null, nam, position);
+
+      if (Status.playersDead[nam]) {
+        playerElement.attrs.class += " dead-player"
+      }
+
+      players.push(playerElement);
     }
   }
   let bombs = []
@@ -180,7 +194,7 @@ function enter(nickname1) {
   }
   //"ws://10.1.13.5:8080" 10.1.13.5 
 
-  ws = new WebSocket("ws://10.1.8.2:8080");
+  ws = new WebSocket("ws");
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {

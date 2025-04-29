@@ -118,6 +118,9 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                                 // console.log(playerRegistry.otherPlayers[key]);
 
                                 // StateManagement.set({ MapState: { ...StateManagement.get().MapState, players: players } })
+
+                                // console.log(Object.keys(StateManagement.get().MapState.players).length , Object.keys(Status.playersDead).length + 1);
+                                
                             }
 
                             flage = 1;
@@ -253,8 +256,8 @@ export function updatePositons() {
 
                 if (ratio !== 1 && xPos !== null && yPos !== null) {
                     // Scale the position values by the tile size ratio
-                    xPos = Math.max(xPos * ratio, 0.5);
-                    yPos = Math.max(yPos * ratio, 0.5);
+                    xPos = Math.max(xPos * ratio, 0);
+                    yPos = Math.max(yPos * ratio, 0);
                     currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
                 }
             }
@@ -290,11 +293,6 @@ export function updatePositons() {
 //---------------------------------- end ayoub
 
 function CurrPlayer(pos = [1, 1]) {
-
-    // if (playerRegistry.currentPlayer) {
-    // xPos = playerRegistry.position[0] * Status.tileSize
-    // yPos = playerRegistry.position[1] * Status.tileSize
-    // }
 
     function initGame(ele) {
         if (xPos !== null || yPos !== null) return;
@@ -468,15 +466,16 @@ function CurrPlayer(pos = [1, 1]) {
 
     function startGameLoop() {
         function gameLoop(timetamp) {
-            if (Status.isGameOver) {
-                // StateManagement.set({ endGame: { type: "loss" } })
-                // ws.close()
-                // return
+            if (Status.playersDead[nickname]) {
+                StateManagement.set({ endGame: { type: "loss" } })
+                ws.close()
+                return
             }
-            if (Object.keys(StateManagement.get().MapState.players).length === 1) {
-                // StateManagement.set({ endGame: { type: "win" } })
-                // ws.close()
-                // return
+
+            if (Object.keys(StateManagement.get().MapState.players).length === Object.keys(Status.playersDead).length + 1) {
+                StateManagement.set({ endGame: { type: "win" } })
+                ws.close()
+                return
             }
 
             // Update speed dynamically based on current tile size
