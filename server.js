@@ -12,7 +12,7 @@ const CONFIG = {
     2: [9, 1],
     3: [9, 13],
   },
-  WITE_TIME: 3
+  WITE_TIME: 5
 }
 const server = http.createServer(handleRequest);
 
@@ -79,7 +79,7 @@ let rooms = {
   // usersConnection: ,
   // },
 };
-let map = []
+// let map = []
 
 wss.on("connection", (ws) => {
   let nickname = null;
@@ -108,9 +108,7 @@ wss.on("connection", (ws) => {
           };
         } else {
           rooms[roomID].players.push(nickname);
-          if (rooms[roomID].players.length === 4) {
-            rooms[roomID].state = "locked"; // Room is locked when full
-          }
+
         }
         ws.roomID = roomID;
         rooms[roomID].usersConnection.set(ws, nickname);
@@ -137,7 +135,9 @@ wss.on("connection", (ws) => {
           players: rooms[roomID].players,
           state: rooms[roomID].state,
         });
-
+        if (rooms[roomID].players.length === 4) {
+          rooms[roomID].state = "locked"; // Room is locked when full
+        }
       },
       //--------------------------------------------------------------------------
       "chat": function () {
@@ -149,11 +149,15 @@ wss.on("connection", (ws) => {
       },
       //--------------------------------------------------------------------------
       "creat_map": function () {
+        if (rooms[roomID].map) {
+          return
+        }
+
         let rows = 11;
         let columns = 15;
         let por = [10, 10, 10, 10, 10, 10, 11, 11, 11, 11]
 
-        map = [
+        let map = [
           [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],
           [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
           [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
@@ -166,6 +170,7 @@ wss.on("connection", (ws) => {
           [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
           [7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9],
         ];
+        rooms[roomID].map = map
 
         function mpbuild() {
           for (let row = 0; row < map.length; row++) {
@@ -195,16 +200,17 @@ wss.on("connection", (ws) => {
             }
           }
 
-          let a = map.flat().filter(v => v === 10).length;
+          // let a = map.flat().filter(v => v === 10).length;
 
-          console.log(a); // 4 time
         }
         mpbuild()
+
         let playersPos = {}
         let pl = rooms[roomID].players
         for (let i = 0; i < pl.length; i++) {
           playersPos[pl[i]] = CONFIG.DEF_POS[i]
         }
+        console.log("set player pos", playersPos);
 
         broadcastToRoom(roomID, {
           type: "map_Generet",

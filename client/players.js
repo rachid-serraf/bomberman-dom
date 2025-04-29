@@ -100,23 +100,24 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                         if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col') && !flage) {
 
                             Status.life[key] -= 1
-                            console.log(Status.life);
+                            // console.log(Status.life);
 
                             if (Status.life[key] === 2) {
-                                if (key === nickname) {
-                                    Status.isGameOver = true
-                                    return
-                                }
-                                let players = StateManagement.get().MapState.players
-                                delete players[key]
+                                // if (key === nickname) {
+                                //     Status.isGameOver = true
+                                //     // return
+                                // }
+                                // let players = StateManagement.get().MapState.players
+                                // delete players[key]
+                                Status.playersDead[key] = true
+                                // console.log("dead players",Status.playersDead);
+                                // console.log("all players", players);
 
                                 // console.log(playerRegistry.otherPlayers[key]);
                                 // delete playerRegistry.otherPlayers[key]
                                 // console.log(playerRegistry.otherPlayers[key]);
 
-                                StateManagement.set({ MapState: { ...StateManagement.get().MapState, players: players } })
-                                console.log("delet player |", key, "| from", StateManagement.get().MapState.players);
-                                console.log("len players", Object.keys(StateManagement.get().MapState.players).length)
+                                // StateManagement.set({ MapState: { ...StateManagement.get().MapState, players: players } })
                             }
 
                             flage = 1;
@@ -252,8 +253,8 @@ export function updatePositons() {
 
                 if (ratio !== 1 && xPos !== null && yPos !== null) {
                     // Scale the position values by the tile size ratio
-                    xPos = Math.max(xPos * ratio, 0);
-                    yPos = Math.max(yPos * ratio, 0);
+                    xPos = Math.max(xPos * ratio, 0.5);
+                    yPos = Math.max(yPos * ratio, 0.5);
                     currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
                 }
             }
@@ -291,8 +292,8 @@ export function updatePositons() {
 function CurrPlayer(pos = [1, 1]) {
 
     // if (playerRegistry.currentPlayer) {
-        // xPos = playerRegistry.position[0] * Status.tileSize
-        // yPos = playerRegistry.position[1] * Status.tileSize
+    // xPos = playerRegistry.position[0] * Status.tileSize
+    // yPos = playerRegistry.position[1] * Status.tileSize
     // }
 
     function initGame(ele) {
@@ -468,14 +469,14 @@ function CurrPlayer(pos = [1, 1]) {
     function startGameLoop() {
         function gameLoop(timetamp) {
             if (Status.isGameOver) {
-                StateManagement.set({ endGame: { type: "loss" } })
-                ws.close()
-                return
+                // StateManagement.set({ endGame: { type: "loss" } })
+                // ws.close()
+                // return
             }
             if (Object.keys(StateManagement.get().MapState.players).length === 1) {
-                StateManagement.set({ endGame: { type: "win" } })
-                ws.close()
-                return
+                // StateManagement.set({ endGame: { type: "win" } })
+                // ws.close()
+                // return
             }
 
             // Update speed dynamically based on current tile size
@@ -580,8 +581,8 @@ function CurrPlayer(pos = [1, 1]) {
             else if (canMove(newXPos, yPos).canMove === false) {
                 updateCornering(canMove(newXPos, yPos));
             }
-            if (moved) console.log(getPlayerTiles(xPos, yPos).uniqueTiles);
-            
+            // if (moved) console.log(getPlayerTiles(xPos, yPos).uniqueTiles);
+
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
 
             let { ischange, bombsfiler } = handleExplosions(StateManagement.get()?.bombs || [])

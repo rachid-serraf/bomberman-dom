@@ -81,13 +81,16 @@ function Game() {
       Status.life[nam] = 3
     }
 
-    if (nam === nickname) {
-      console.log(nam, "call");
-      console.log("cur player",CurrPlayer(position));
-      
-      players.push(CurrPlayer(position));
-    } else {
-      players.push(SetOtherPlayerAndMove(false, null, nam, position));
+    if (Status.playersDead[nam] === undefined) {
+      if (nam === nickname) {
+        players.push(CurrPlayer(position));
+      } else {
+        console.log(nam, Status.playersDead[nam]);
+        console.log("dead players", Status.playersDead);
+        console.log("all players", Status.players);
+        console.log("------------------------------------------------------");
+        players.push(SetOtherPlayerAndMove(false, null, nam, position));
+      }
     }
   }
   let bombs = []
@@ -155,7 +158,7 @@ function enter(event) {
   }
   //"ws://10.1.13.5:8080" 10.1.13.5 
 
-  ws = new WebSocket("ws");
+  ws = new WebSocket("ws://10.1.8.2:8080");
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {
@@ -190,7 +193,7 @@ function enter(event) {
       }
 
     } else if (data.type === "player_left") {
-      
+
     } else if (data.type === "chat") {
       let is_mine = data.nickname === nickname
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });

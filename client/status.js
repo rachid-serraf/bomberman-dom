@@ -12,5 +12,6 @@ export const Status = {
     "sombola": true
   },
   life: {},
-  isGameOver: false
+  isGameOver: false,
+  playersDead: {},
 }
