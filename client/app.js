@@ -154,7 +154,7 @@ function enter(event) {
   }
   //"ws://10.1.13.5:8080" 10.1.13.5 
 
-  ws = new WebSocket("ws://10.1.13.5:8080");
+  ws = new WebSocket("ws");
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {

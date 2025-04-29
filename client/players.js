@@ -267,7 +267,7 @@ export function updatePositons() {
     }
 
     for (const [nickname, data] of Object.entries(playerRegistry.otherPlayers)) {
-        const playerEl = document.getElementById(`other-player-${nickname}`);
+        const playerEl = getId(`other-player-${nickname}`);
         if (playerEl && data) {
             playerEl.style.width = `${playerWidth}px`;
             playerEl.style.height = `${playerHeight}px`;
@@ -622,9 +622,6 @@ function CurrPlayer(pos = [1, 1]) {
         ref: initGame
     });
 }
-
-let isfirst = false
-
 function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
     let playerEl;
 
@@ -645,7 +642,7 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
         playerRegistry.otherPlayers[nam] = {
             initialPos: initialPos,
             xPos: initialPos[1] - 1,
-            yPos: initialPos[0] - 1
+            yPos: initialPos[0] - 1  
         };
     }
 
@@ -659,8 +656,6 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
     }
 
     function initPlayer(ele) {
-        if (isfirst) return;
-        isfirst = true;
         playerEl = ele;
 
         let diff = (Status.tileSize / 100) * 10;
@@ -668,23 +663,32 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
         const playerHeight = Status.tileSize - diff;
 
         const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
-        if (tileElementInit) {
+        if (tileElementInit ) {
             const tileRectInit = tileElementInit.getBoundingClientRect();
 
             if (playerEl) {
                 playerEl.style.width = `${playerWidth}px`;
                 playerEl.style.height = `${playerHeight}px`;
+                
                 playerEl.style.top = `${tileRectInit.top + (diff / 2)}px`;
                 playerEl.style.left = `${tileRectInit.left + (diff / 2)}px`;
-                let xPos = ((initialPos[1] - 1) * Status.tileSize)
-                let yPos = ((initialPos[0] - 1) * Status.tileSize)
+                
+                let xPos = (initialPos[1] - 1) * Status.tileSize
+                let yPos = (initialPos[0] - 1) * Status.tileSize
+
+                if(playerRegistry.otherPlayers[nam]){
+                    xPos = playerRegistry.otherPlayers[nam].xPos * Status.tileSize
+                    yPos = playerRegistry.otherPlayers[nam].yPos * Status.tileSize
+                }
+                
                 playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
 
                 const spriteScaleFactor = playerHeight / 32;
                 playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
                 playerEl.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
                 playerEl.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
-                Status.players[nam] = { xPos, yPos }
+                
+                Status.players[nam] = { xPos, yPos };
             }
         }
 
