@@ -136,17 +136,39 @@ let room = {}
 let left_time = 20
 let nickname
 let messages = []
-function sendMessage(e) {
-  e.preventDefault();
-  let message = document.getElementById("message").value;
+function sendMessage(message) {
   document.getElementById("message").value = "";
   ws.send(JSON.stringify({ type: "chat", message: message, nickname: nickname }));
 }
 
-function enter(event) {
+let timer = 2;
+const starting = () => {
+  let timerNode = null;
+  let messageNode = null;
+  if (timer == 0) {
+    timer = 10;
+    router.link("/game")
+    ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }))
+    return
+  }
+  setTimeout(() => {
+    timer--;
+    StateManagement.set({
+      countdown: timer
+    })
+  }, 1000);
+
+  return vdm("div", { class: "holder" }, [
+    vdm("h1", {}, "Countdown Timer"),
+    vdm("div", { id: "timer", ref: (el) => { timerNode = el; } }, `${timer}`),
+    vdm("div", { class: "message", id: "message", ref: (el) => { messageNode = el; } })
+  ]);
+};
+
+
+function enter(nickname1) {
   messages = []
-  event.preventDefault();
-  nickname = document.getElementById("nickname").value;
+  nickname = nickname1
 
   if (!nickname) {
     alert("Please enter a nickname.");
@@ -187,9 +209,7 @@ function enter(event) {
       })
 
       if (left_time === 0) {
-        ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }))
-
-        router.link("/game")
+        router.link("/starting")
       }
 
     } else if (data.type === "player_left") {
@@ -254,12 +274,17 @@ function enter(event) {
 }
 
 function NewUserPage() {
+  let myRef = null
+  function handleClick(e) {
+    e.preventDefault()
+    enter(myRef.value)
+  }
   return (
     vdm("div", { class: "contener_auth" },
       vdm("div", { class: "pixel2" },
-        vdm("input", { type: "text", class: "input_name", id: "nickname", placeholder: "your name", maxlength: "20" }),
-        vdm("button", { class: "btn_add_name", onClick: (e) => enter(e) }, "play"),
-        EmotesCat(2, "insert your name", false)
+        vdm("input", { type: "text", class: "input_name", id: "nickname", placeholder: "your name", maxlength: "20", ref: (el) => { myRef = el } }),
+        vdm("button", { class: "btn_add_name", onClick: (e) => handleClick(e) }, "play"),
+        EmotesCat(2, "insert your name")
       )
     ))
 }
@@ -308,6 +333,7 @@ router
   .add("/", NewUserPage)
   .add("/waiting", waitingChattingPage)
   .add("/game", gameLayout)
+  .add("/starting", starting)
 
 router.setNotFound(() =>
   vdm("div", {},
@@ -348,6 +374,11 @@ StateManagement.subscribe((state) => {
     } else {
       renderComponent(() => endGame("win"))
     }
+  }
+
+  if (state.countdown !== lastState.countdown) {
+    setRoot("leftSide")
+    renderComponent(starting)
   }
 
   lastState = StateManagement.get()

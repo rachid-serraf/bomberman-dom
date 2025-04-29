@@ -3,9 +3,13 @@ import { EventSystem, vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
 
 function chatting() {
-  // console.log("chatting render");
-  // console.log(EventSystem.events);
-
+  let inputNode = null;
+  function handleclick(e){
+    e.preventDefault();
+    const message = inputNode.value;
+    sendMessage(message);
+    inputNode.value = "";
+  }
   return vdm("div", { class: "chat-container" }, [
     vdm("div", { class: "chat-header" }, [
       vdm("h2", {}, ["Game Chat"]),
@@ -15,6 +19,8 @@ function chatting() {
 
         const messageClass = msg.is_mine ? "user-message" : "other-message";
         const senderName = msg.is_mine ? "You" : msg.nickname;
+        console.log(msg.is_mine);
+
 
         return vdm("div", { class: `message ${messageClass}` }, [
           vdm("div", { class: "message-sender" }, [senderName]),
@@ -28,12 +34,12 @@ function chatting() {
         class: "chat-input",
         id: "message",
         placeholder: "Type your message...",
+        ref: (el) => {inputNode = el},
       }),
-      vdm("button", { class: "send-button", onClick: (e) => sendMessage(e) }, ["Send"]),
+      vdm("button", { class: "send-button", onclick: (e) => {handleclick(e)} }, ["Send"]),
     ]),
   ]);
 }
-
 
 function waiting() {
   // console.log("waiting render");
