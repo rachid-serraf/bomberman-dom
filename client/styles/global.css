@@ -3,6 +3,10 @@
   --EmotesSteps: 1;
 }
 
+* {
+  font-family: 'Arial', sans-serif;
+}
+
 body {
   overflow: hidden;
 }
@@ -13,7 +17,7 @@ body {
 }
 
 .emotes_cat {
-  background-image: url('Assets/Sprout Lands - Sprites - Basic pack/UI/Sprite sheets/Dialouge UI/Emotes/Teemo Basic emote animations sprite sheet.png');
+  background-image: url('../Assets/Sprout Lands - Sprites - Basic pack/UI/Sprite sheets/Dialouge UI/Emotes/Teemo Basic emote animations sprite sheet.png');
   width: 32px;
   height: 32px;
   background-repeat: no-repeat;
@@ -35,7 +39,7 @@ body {
 }
 
 .message_emotes {
-  background-image: url("Assets/Sprout Lands - Sprites - Basic pack/UI/Sprite sheets/Dialouge UI/dialog box big.png");
+  background-image: url("../Assets/Sprout Lands - Sprites - Basic pack/UI/Sprite sheets/Dialouge UI/dialog box big.png");
   background-repeat: no-repeat;
   background-size: cover;
   line-height: 60px;
@@ -72,7 +76,7 @@ body {
   left: 0;
   position: absolute;
   z-index: 10;
-  background-image: url('Assets/character/walk-front.png');
+  background-image: url('../Assets/character/walk-front.png');
   background-size: var(--sprite-sheet-width) auto;
   image-rendering: pixelated;
 }
@@ -88,45 +92,45 @@ body {
 }
 
 .current-player.right {
-  background-image: url('Assets/character/walk-right.png');
+  background-image: url('../Assets/character/walk-right.png');
   animation: animaplayer 0.5s steps(4) infinite;
 }
 
 .current-player.left {
-  background-image: url('Assets/character/walk-left.png');
+  background-image: url('../Assets/character/walk-left.png');
   animation: animaplayer 0.5s steps(4) infinite;
 }
 
 .current-player.top {
-  background-image: url('Assets/character/walk-back.png');
+  background-image: url('../Assets/character/walk-back.png');
   animation: animaplayer 0.5s steps(4) infinite;
 }
 
 .current-player.down {
-  background-image: url('Assets/character/walk-front.png');
+  background-image: url('../Assets/character/walk-front.png');
   animation: animaplayer 0.5s steps(4) infinite;
 }
 
 .current-player.idle-right {
-  background-image: url('Assets/character/walk-right.png');
+  background-image: url('../Assets/character/walk-right.png');
 }
 
 .current-player.idle-left {
-  background-image: url('Assets/character/walk-left.png');
+  background-image: url('../Assets/character/walk-left.png');
 
 }
 
 .current-player.idle-top {
-  background-image: url('Assets/character/walk-back.png');
+  background-image: url('../Assets/character/walk-back.png');
 }
 
 .current-player.idle-down {
-  background-image: url('Assets/character/walk-front.png');
+  background-image: url('../Assets/character/walk-front.png');
 }
 
 /* Default idle state */
 .current-player.idle {
-  background-image: url('Assets/character/walk-front.png');
+  background-image: url('../Assets/character/walk-front.png');
   animation: none;
 }
 
@@ -140,7 +144,7 @@ body {
 .bomb {
   top: 0;
   left: 0;
-  background-image: url('Assets/bomb/dynamite.png');
+  background-image: url('../Assets/bomb/dynamite.png');
   image-rendering: pixelated;
   background-size: var(--bomb-sheet-width) auto;
   position: absolute;
@@ -160,7 +164,7 @@ body {
 .explosion {
   top: 0;
   left: 0;
-  background-image: url('Assets/bomb/explosion_1row.png');
+  background-image: url('../Assets/bomb/explosion_1row.png');
   image-rendering: pixelated;
   background-size: var(--bomb-sheet-width) auto;
   position: absolute;

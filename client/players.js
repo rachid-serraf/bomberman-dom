@@ -8,7 +8,6 @@ let yPos = null;
 let lastBombTime = 0;
 let playerWidth = 0;
 let playerHeight = 0;
-let debugInfo = {};
 let currPlayer;
 let keysPressed = {};
 let animationFrameId;
@@ -19,11 +18,10 @@ let isMoving = false;
 let lastDirection = "down";
 let skipCorner = { x: 0, y: 0 };
 let lastClass = ""
-
+let isResize = true
 let startTime = 0
 
 function vdmExplosion(explo) {
-
     const spriteScaleFactor = Status.tileSize / 32;
 
     return vdm("div", {
@@ -38,7 +36,6 @@ function vdmExplosion(explo) {
             --bomb-sheet-width: ${192 * spriteScaleFactor}px;`
     });
 }
-let i = 0;
 
 function explosionEffect(top, left, bombPower = Status.bombPower) {
     let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
@@ -74,11 +71,6 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
             if (tileElementNegativeVy.id === 'toba' || tileElementNegativeVy.id === 'right' || tileElementNegativeVy.id === 'top' || tileElementNegativeVy.id === 'left' || tileElementNegativeVy.id === 'tree' || tileElementNegativeVy.id === 'down') fnvy = true;
         }
 
-        debugInfo["tileElementPositiveVx"] = tileElementPositiveVx.id;
-        debugInfo["tileElementNegativeVx"] = tileElementNegativeVx.id;
-        debugInfo["tileElementPositiveVy"] = tileElementPositiveVy.id;
-        debugInfo["tileElementNegativeVy"] = tileElementNegativeVy.id;
-
         const tileElements = [
             tileElementPositiveVx,
             tileElementNegativeVx,
@@ -108,19 +100,23 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                         if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col') && !flage) {
 
                             Status.life[key] -= 1
-                            console.log(key, value);
+                            console.log(Status.life);
 
-                            if (Status.life[key] <= 0) {
+                            if (Status.life[key] === 2) {
                                 if (key === nickname) {
-                                    router.link("/")
+                                    Status.isGameOver = true
                                     return
                                 }
                                 let players = StateManagement.get().MapState.players
-                                delete players[nickname]
+                                delete players[key]
+
+                                // console.log(playerRegistry.otherPlayers[key]);
+                                // delete playerRegistry.otherPlayers[key]
+                                // console.log(playerRegistry.otherPlayers[key]);
 
                                 StateManagement.set({ MapState: { ...StateManagement.get().MapState, players: players } })
-                                console.log("delet player", key, "from", StateManagement.get().MapState.players);
-                                // cancelAnimationFrame(animationFrameId)
+                                console.log("delet player |", key, "| from", StateManagement.get().MapState.players);
+                                console.log("len players", Object.keys(StateManagement.get().MapState.players).length)
                             }
 
                             flage = 1;
@@ -201,7 +197,6 @@ function getPlayerTiles(playerX, playerY) {
         { x: playerX, y: playerY + playerHeight },
         { x: playerX + playerWidth, y: playerY + playerHeight }
     ];
-    debugInfo["corners"] = corners.map(corner => `(${corner.x}, ${corner.y})`).join(", ");
     const gridPositions = corners.map(corner => ({
         gridX: Math.floor(corner.x / Status.tileSize),
         gridY: Math.floor(corner.y / Status.tileSize)
@@ -215,7 +210,6 @@ function getPlayerTiles(playerX, playerY) {
             uniqueTiles.push(pos);
         }
     });
-    debugInfo["uniqueTiles"] = uniqueTiles.map(tile => `(${tile.gridX + 1}, ${tile.gridY + 1})`).join(", ");
     return {
         corners,
         uniqueTiles
@@ -236,8 +230,8 @@ export function updatePositons() {
     let diff = (Status.tileSize / 100) * 10;
     playerWidth = Status.tileSize - diff;
     playerHeight = Status.tileSize - diff;
-    speedX = Status.tileSize / 20;
-    speedY = Status.tileSize / 20;
+    speedX = (Status.tileSize / 20) + Status.Speed;
+    speedY = (Status.tileSize / 20) + Status.Speed;
 
     if (playerRegistry.currentPlayer) {
         const currPlayer = document.getElementById("current-player");
@@ -295,10 +289,16 @@ export function updatePositons() {
 //---------------------------------- end ayoub
 
 function CurrPlayer(pos = [1, 1]) {
-    playerRegistry.currentPlayer = { position: pos };
+
+    // if (playerRegistry.currentPlayer) {
+        // xPos = playerRegistry.position[0] * Status.tileSize
+        // yPos = playerRegistry.position[1] * Status.tileSize
+    // }
 
     function initGame(ele) {
         if (xPos !== null || yPos !== null) return;
+        playerRegistry.currentPlayer = { position: pos };
+
         currPlayer = ele
         const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
         const tileRectInit = tileElementInit.getBoundingClientRect();
@@ -307,8 +307,8 @@ function CurrPlayer(pos = [1, 1]) {
 
         playerWidth = Status.tileSize - diff;
         playerHeight = Status.tileSize - diff;
-        speedX = Status.tileSize / 20;
-        speedY = Status.tileSize / 20;
+        speedX = (Status.tileSize / 20) + Status.Speed;
+        speedY = (Status.tileSize / 20) + Status.Speed;
 
         if (currPlayer) {
             currPlayer.style.width = `${playerWidth}px`;
@@ -331,15 +331,12 @@ function CurrPlayer(pos = [1, 1]) {
             Status.players[nickname] = { xPos, yPos }
         }
         // const ss = (e) => { keysPressed[e.key] = true; }
-        debugInfo["Player Size"] = `Width: ${playerWidth}, Height: ${playerHeight}`;
         EventSystem.add(document, "keydown", (e) => { keysPressed[e.key] = true; });
         EventSystem.add(document, "keyup", (e) => { keysPressed[e.key] = false; });
 
         startTime = Date.now();
         startGameLoop();
         playerRegistry.oldTileSize = Status.tileSize;
-
-        // console.log(EventSystem.events); 
     }
 
     function updatePlayerState(state, direction) {
@@ -363,9 +360,6 @@ function CurrPlayer(pos = [1, 1]) {
             lastDirection = direction;
             currentDirection = direction;
         }
-
-        debugInfo["Current State"] = state;
-        debugInfo["Current Direction"] = direction || lastDirection;
     }
 
     function getTileInfo(gridX, gridY) {
@@ -393,7 +387,6 @@ function CurrPlayer(pos = [1, 1]) {
         let index = 0;
         let cal = 0;
         if (cornerTilesBool.length < 4) {
-            debugInfo["cornerTilesBool"] = ''
             return {
                 index: -1,
             };
@@ -412,7 +405,6 @@ function CurrPlayer(pos = [1, 1]) {
                 }
             }
         }
-        debugInfo["cornerTilesBool"] = cornerTilesBool.map(info => info.walkable).join(", ");
         return {
             skipCorner,
             index,
@@ -425,12 +417,6 @@ function CurrPlayer(pos = [1, 1]) {
             index: -1,
         };
         const tiles = getPlayerTiles(newX, newY);
-        debugInfo["tiles"] = tiles.uniqueTiles.map(tile => `(${tile.gridX + 1}, ${tile.gridY + 1})`).join(", ");
-        tiles.uniqueTiles.forEach((tile, index) => {
-            const tileInfo = getTileInfo(tile.gridX, tile.gridY);
-            debugInfo[`Tile ${index + 1}`] =
-                `(${tile.gridX + 1}, ${tile.gridY + 1}) - Type: ${tileInfo.id || 'unknown'} - ${tileInfo.walkable ? 'walkable' : 'blocked'}`;
-        });
         const canMove = tiles.uniqueTiles.every(tile => {
             const tileInfo = getTileInfo(tile.gridX, tile.gridY);
             if (tileInfo.walkable === false) {
@@ -439,7 +425,6 @@ function CurrPlayer(pos = [1, 1]) {
             return tileInfo.walkable;
         });
         turnToDirection.canMove = canMove;
-        debugInfo["Can Move"] = canMove ? "Yes" : "No";
         return turnToDirection;
     }
 
@@ -482,9 +467,20 @@ function CurrPlayer(pos = [1, 1]) {
 
     function startGameLoop() {
         function gameLoop(timetamp) {
+            if (Status.isGameOver) {
+                StateManagement.set({ endGame: { type: "loss" } })
+                ws.close()
+                return
+            }
+            if (Object.keys(StateManagement.get().MapState.players).length === 1) {
+                StateManagement.set({ endGame: { type: "win" } })
+                ws.close()
+                return
+            }
+
             // Update speed dynamically based on current tile size
-            speedX = Status.tileSize / Status.devcSpeed;
-            speedY = Status.tileSize / Status.devcSpeed;
+            speedX = (Status.tileSize / 20 + Status.Speed);
+            speedY = (Status.tileSize / 20 + Status.Speed);
 
             let newXPos = xPos;
             let newYPos = yPos;
@@ -529,6 +525,9 @@ function CurrPlayer(pos = [1, 1]) {
                 sendPosition();
             }
             function sendPosition() {
+
+                playerRegistry.currentPlayer = { position: [xPos, yPos] };
+
                 Status.players[nickname] = { xPos, yPos }
                 ws.send(JSON.stringify({
                     type: "player_moveng",
@@ -546,19 +545,18 @@ function CurrPlayer(pos = [1, 1]) {
                     case "apple":
                         Status.numberCanSetBomb++
                         sendGetItem(tile.id)
-                        console.log("numbber bomb", Status.numberCanSetBomb, "--------------------------------");
                         break;
                     case "corn":
                         Status.bombPower++
                         sendGetItem(tile.id)
-                        console.log("bomb power", Status.bombPower, "--------------------------------");
                         break;
                     case "sombola":
-                        if (Status.devcSpeed > 5) {
-                            Status.devcSpeed -= 3
+                        if (Status.Speed < 2) {
+                            Status.Speed += 0.5
                         }
+                        console.log(Status.Speed);
+
                         sendGetItem(tile.id)
-                        console.log("speed", Status.devcSpeed, "--------------------------------");
                         break;
                 }
                 function sendGetItem(nameItem) {
@@ -582,6 +580,8 @@ function CurrPlayer(pos = [1, 1]) {
             else if (canMove(newXPos, yPos).canMove === false) {
                 updateCornering(canMove(newXPos, yPos));
             }
+            if (moved) console.log(getPlayerTiles(xPos, yPos).uniqueTiles);
+            
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
 
             let { ischange, bombsfiler } = handleExplosions(StateManagement.get()?.bombs || [])
@@ -618,12 +618,20 @@ function CurrPlayer(pos = [1, 1]) {
 
     return vdm("div", {
         id: "current-player",
-        class: "current-player idle-down", // default state
+        class: "current-player idle-left", // default state
         ref: initGame
     });
 }
+
 function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
     let playerEl;
+    if (!playerRegistry.otherPlayers[nam]) {
+        playerRegistry.otherPlayers[nam] = {
+            initialPos: initialPos,
+            xPos: initialPos[1] - 1,
+            yPos: initialPos[0] - 1
+        };
+    }
 
     if (isMove) {
         if (!playerRegistry.otherPlayers[data.nickname]) {
@@ -638,13 +646,6 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
         return;
     }
 
-    if (!playerRegistry.otherPlayers[nam]) {
-        playerRegistry.otherPlayers[nam] = {
-            initialPos: initialPos,
-            xPos: initialPos[1] - 1,
-            yPos: initialPos[0] - 1  
-        };
-    }
 
     function move() {
         const playerEl = document.getElementById(`other-player-${data.nickname}`);
@@ -663,36 +664,37 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
         const playerHeight = Status.tileSize - diff;
 
         const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
-        if (tileElementInit ) {
+        if (tileElementInit) {
             const tileRectInit = tileElementInit.getBoundingClientRect();
 
             if (playerEl) {
                 playerEl.style.width = `${playerWidth}px`;
                 playerEl.style.height = `${playerHeight}px`;
-                
+
                 playerEl.style.top = `${tileRectInit.top + (diff / 2)}px`;
                 playerEl.style.left = `${tileRectInit.left + (diff / 2)}px`;
-                
+
                 let xPos = (initialPos[1] - 1) * Status.tileSize
                 let yPos = (initialPos[0] - 1) * Status.tileSize
 
-                if(playerRegistry.otherPlayers[nam]){
+                if (playerRegistry.otherPlayers[nam]) {
                     xPos = playerRegistry.otherPlayers[nam].xPos * Status.tileSize
                     yPos = playerRegistry.otherPlayers[nam].yPos * Status.tileSize
                 }
-                
+
                 playerEl.style.transform = `translate(${xPos}px, ${yPos}px)`;
 
                 const spriteScaleFactor = playerHeight / 32;
                 playerEl.style.setProperty('--sprite-width', `${32 * spriteScaleFactor}px`);
                 playerEl.style.setProperty('--sprite-height', `${32 * spriteScaleFactor}px`);
                 playerEl.style.setProperty('--sprite-sheet-width', `${128 * spriteScaleFactor}px`);
-                
+
                 Status.players[nam] = { xPos, yPos };
             }
         }
 
         playerRegistry.oldTileSize = Status.tileSize;
+        isResize = false
     }
 
     return (

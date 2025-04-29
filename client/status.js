@@ -4,7 +4,7 @@ export const Status = {
   numberCanSetBomb: 1,
   players: {},
   bombPower: 2,
-  devcSpeed: 20,
+  Speed: 0,
   allowd: {
     "grass": true,
     "apple": true,
@@ -12,4 +12,5 @@ export const Status = {
     "sombola": true
   },
   life: {},
+  isGameOver: false
 }

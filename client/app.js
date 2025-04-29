@@ -82,8 +82,9 @@ function Game() {
     }
 
     if (nam === nickname) {
-      console.log(nam, nickname);
-
+      console.log(nam, "call");
+      console.log("cur player",CurrPlayer(position));
+      
       players.push(CurrPlayer(position));
     } else {
       players.push(SetOtherPlayerAndMove(false, null, nam, position));
@@ -189,7 +190,7 @@ function enter(event) {
       }
 
     } else if (data.type === "player_left") {
-      // Handle player leaving in the game
+      
     } else if (data.type === "chat") {
       let is_mine = data.nickname === nickname
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
@@ -240,7 +241,7 @@ function enter(event) {
 
   ws.onclose = function () {
     console.log("Disconnected from server");
-    router.link("/");
+    // router.link("/");
   };
 
   ws.onerror = function (error) {
@@ -345,23 +346,6 @@ StateManagement.subscribe((state) => {
       renderComponent(() => endGame("win"))
     }
   }
-
-  // const path = window.location.pathname
-  // if (path === "/waiting") {
-  //   if (state.chat !== lastState.chat) {
-  //     setRoot('rightSide')
-  //     renderComponent(chatting);
-  //   }
-  //   if (state.waiting !== lastState.waiting) {
-  //     setRoot('leftSide')
-  //     renderComponent(waiting);
-  //   }
-  // } else {
-  //   setRoot('app')
-  //   renderComponent(gameLayout);
-  // }
-
-  // console.log(EventSystem.events);
 
   lastState = StateManagement.get()
 })
