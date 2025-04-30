@@ -1,10 +1,11 @@
-export { waitingChattingPage, chatting, waiting };
 import { EventSystem, vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
 
+export { waitingChattingPage, chatting, waiting, EmotesCat };
+
 function chatting() {
   let inputNode = null;
-  function handleclick(e){
+  function handleclick(e) {
     e.preventDefault();
     const message = inputNode.value;
     sendMessage(message);
@@ -34,9 +35,9 @@ function chatting() {
         class: "chat-input",
         id: "message",
         placeholder: "Type your message...",
-        ref: (el) => {inputNode = el},
+        ref: (el) => { inputNode = el },
       }),
-      vdm("button", { class: "send-button", onclick: (e) => {handleclick(e)} }, ["Send"]),
+      vdm("button", { class: "send-button", onclick: (e) => { handleclick(e) } }, ["Send"]),
     ]),
   ]);
 }
@@ -95,30 +96,72 @@ export function endGame(type = "win") {
   let msgTitle = "You Win!"
   let idTitle = "winMsg"
   let msgCon = "congrate 🎉🥳🎊🎁"
+  let nbr = 6
   if (type == "loss") {
     msgTitle = "You Loss!"
     idTitle = "lossMsg"
     msgCon = "good luck next time"
+    nbr = 10
   }
 
   return vdm(
     "div",
     {},
-    vdm("div", { id: "overlay" }),
     vdm(
       "div",
       { id: "popup", class: "pixel2" },
       vdm("div", { id: `${idTitle}` }, `${msgTitle}`),
       vdm("button", { class: "btn_add_name", onClick: () => location.reload() }, "replay"),
-      vdm(
-        "div",
-        { class: "contaner_emotes" },
-        vdm("div", { class: "emotes_cat" }),
-        vdm(
-          "div",
-          { class: "message_emotes" },
-          vdm("p", {}, `${msgCon}`)
-        )
+      EmotesCat(nbr, msgCon, false)
+      // vdm(
+      //   "div",
+      //   { class: "contaner_emotes" },
+      //   vdm("div", { class: "emotes_cat" }),
+      //   vdm(
+      //     "div",
+      //     { class: "message_emotes" },
+      //     vdm("p", {}, `${msgCon}`)
+      //   )
+      // )
+    )
+  )
+}
+
+// defferent emotes cat 0 -> 14
+function EmotesCat(emoteNumber, message, random = true) {
+  const root = document.documentElement
+  const steps = {
+    0: 1,
+    1: 2,
+    2: 5,
+    3: 4,
+    4: 2,
+    5: 2,
+    6: 2,
+    7: 2,
+    8: 2,
+    9: 2,
+    10: 2,
+    11: 2,
+    12: 1,
+    13: 2,
+    14: 1
+  }
+  function setanime() {
+    if (steps[emoteNumber]) {
+      root.style.setProperty('--EmotesNumber', emoteNumber)
+      root.style.setProperty('--EmotesSteps', steps[emoteNumber])
+    }
+    emoteNumber = Math.round(Math.random() * (13 - 1) + 1);
+  }
+  if (random) setInterval(() => setanime(), 5000);
+  else setanime()
+
+  return (
+    vdm("div", { class: "contaner_emotes" },
+      vdm("div", { class: "emotes_cat" }),
+      vdm("div", { class: "message_emotes" },
+        vdm("p", {}, message)
       )
     )
   )

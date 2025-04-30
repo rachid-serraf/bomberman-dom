@@ -1,4 +1,4 @@
-import { chatting, waitingChattingPage, waiting, endGame } from "./htmls.js";
+import { chatting, waitingChattingPage, waiting, endGame, EmotesCat } from "./htmls.js";
 import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
@@ -16,7 +16,6 @@ let first = true
 function Game() {
 
   let MapState = StateManagement.get().MapState
-  // console.log(MapState);
 
   if (!MapState) return vdm("div", {}, "loding map...")
   function draw() {
@@ -69,27 +68,14 @@ function Game() {
 
     container.style.gridTemplateRows = `repeat(${MapState.rows}, ${Status.tileSize}px)`;
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${Status.tileSize}px)`;
-    // updatePositons();
-
   }
 
   let players = [];
 
   for (let [nam, position] of Object.entries(MapState.players)) {
-
     if (first) {
       Status.life[nam] = 3
     }
-
-    // if (!Status.playersDead[nam]) {
-    //   if (nam === nickname) {
-    //     players.push(CurrPlayer(position));
-    //   } else {
-    //     players.push(SetOtherPlayerAndMove(false, null, nam, position));
-    //   }
-    // }
-
-
     if (nam === nickname) {
       const playerElCurr = CurrPlayer(position);
       if (Status.playersDead[nam]) {
@@ -121,10 +107,11 @@ function Game() {
       vdm("div", { id: "counterSide" },
         vdm("div", { class: "counter-container" },
           vdm("div", { class: "lives-section" },
-            vdm("div", { class: "lives-hearts", id: "lives-hearts" }, "❤️❤️❤️")
+            ...Array.from({ length: Status.life[nickname] }, (_, i) =>
+              vdm("div", { class: "lives-hearts", id: "lives-hearts" }))
           ),
           vdm("div", { class: "timer-section" },
-            vdm("div", { class: "timer-icon" }, "⏱️"),
+            vdm("div", { class: "timer-icon" }),
             vdm("div", { class: "timer-display", id: "timer-display" }, "00:00:00")
           )
         )
@@ -155,7 +142,7 @@ function sendMessage(message) {
   ws.send(JSON.stringify({ type: "chat", message: message, nickname: nickname }));
 }
 
-let timer = 2;
+let timer = 10;
 const starting = () => {
   let timerNode = null;
   let messageNode = null;
@@ -172,10 +159,10 @@ const starting = () => {
     })
   }, 1000);
 
-  return vdm("div", { class: "holder" }, [
+  return vdm("div", { class: "count10_holder" }, [
     vdm("h1", {}, "Countdown Timer"),
-    vdm("div", { id: "timer", ref: (el) => { timerNode = el; } }, `${timer}`),
-    vdm("div", { class: "message", id: "message", ref: (el) => { messageNode = el; } })
+    vdm("div", { id: "count10_timer", ref: (el) => { timerNode = el; } }, `${timer}`),
+    vdm("div", { class: "count10_message", id: "message", ref: (el) => { messageNode = el; } })
   ]);
 };
 
@@ -192,9 +179,9 @@ function enter(nickname1) {
     alert("Nickname must be 2 characters or more.");
     return;
   }
-  //"ws://10.1.13.5:8080" 10.1.13.5 
+  //"ws://10.1.8.2 :8080"
 
-  ws = new WebSocket("ws");
+  ws = new WebSocket("ws://10.1.8.2:8080");
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {
@@ -241,7 +228,7 @@ function enter(nickname1) {
     if (data.type === "map_Generet") {
       StateManagement.set({ MapState: data })
       EventSystem.add(window, 'resize', () => {
-        if (window.isResizing) return;
+        if (window.isResizing || StateManagement.get().endGame) return;
         window.isResizing = true;
 
         setRoot("app")
@@ -298,50 +285,11 @@ function NewUserPage() {
       vdm("div", { class: "pixel2" },
         vdm("input", { type: "text", class: "input_name", id: "nickname", placeholder: "your name", maxlength: "20", ref: (el) => { myRef = el } }),
         vdm("button", { class: "btn_add_name", onClick: (e) => handleClick(e) }, "play"),
-        EmotesCat(2, "insert your name")
+        EmotesCat(2, "insert your name", false)
       )
     ))
 }
 
-// defferent emotes cat 0 -> 14
-function EmotesCat(emoteNumber, message, random = true) {
-  const root = document.documentElement
-  const steps = {
-    0: 1,
-    1: 2,
-    2: 5,
-    3: 4,
-    4: 2,
-    5: 2,
-    6: 2,
-    7: 2,
-    8: 2,
-    9: 2,
-    10: 2,
-    11: 2,
-    12: 1,
-    13: 2,
-    14: 1
-  }
-  function setanime() {
-    if (steps[emoteNumber]) {
-      root.style.setProperty('--EmotesNumber', emoteNumber)
-      root.style.setProperty('--EmotesSteps', steps[emoteNumber])
-    }
-    emoteNumber = Math.round(Math.random() * (13 - 1) + 1);
-  }
-  if (random) setInterval(() => setanime(), 5000);
-  else setanime()
-
-  return (
-    vdm("div", { class: "contaner_emotes" },
-      vdm("div", { class: "emotes_cat" }),
-      vdm("div", { class: "message_emotes" },
-        vdm("p", {}, message)
-      )
-    )
-  )
-}
 
 router
   .add("/", NewUserPage)
@@ -359,7 +307,7 @@ router.setNotFound(() =>
 StateManagement.subscribe((state) => {
   const path = window.location.pathname
   if (state.chat !== lastState.chat) {
-    if (path === "/waiting") {
+    if (path === "/waiting" || path === "/starting") {
       setRoot('rightSide')
       renderComponent(chatting);
     } else {

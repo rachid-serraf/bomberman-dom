@@ -44,93 +44,83 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
     const time = Date.now();
     let exploAdd = []
     let flage = 0;
-
+    let playerKilled = "";
+    let tileElements = []
     for (let index = 0; index < bombPower; index++) {
         if (fpvx === false) {
             tileElementPositiveVx = document.querySelector(
                 `[data-row="${top}"][data-col="${left + index}"]`
             );
+            tileElements.push(tileElementPositiveVx)
             if (tileElementPositiveVx.id === 'toba' || tileElementPositiveVx.id === 'right' || tileElementPositiveVx.id === 'top' || tileElementPositiveVx.id === 'left' || tileElementPositiveVx.id === 'tree' || tileElementPositiveVx.id === 'down') fpvx = true;
         }
+        if (index === 0) continue;
         if (fnvx === false) {
             tileElementNegativeVx = document.querySelector(
                 `[data-row="${top}"][data-col="${left + (-index)}"]`
             );
+            tileElements.push(tileElementNegativeVx)
             if (tileElementNegativeVx.id === 'toba' || tileElementNegativeVx.id === 'right' || tileElementNegativeVx.id === 'top' || tileElementNegativeVx.id === 'left' || tileElementNegativeVx.id === 'tree' || tileElementNegativeVx.id === 'down') fnvx = true;
         }
         if (fpvy === false) {
             tileElementPositiveVy = document.querySelector(
                 `[data-row="${top + index}"][data-col="${left}"]`
             );
+            tileElements.push(tileElementPositiveVy)
+
             if (tileElementPositiveVy.id === 'toba' || tileElementPositiveVy.id === 'right' || tileElementPositiveVy.id === 'top' || tileElementPositiveVy.id === 'left' || tileElementPositiveVy.id === 'tree' || tileElementPositiveVy.id === 'down') fpvy = true;
         }
         if (fnvy === false) {
             tileElementNegativeVy = document.querySelector(
                 `[data-row="${top + (-index)}"][data-col="${left}"]`
             );
+            tileElements.push(tileElementNegativeVy)
+
             if (tileElementNegativeVy.id === 'toba' || tileElementNegativeVy.id === 'right' || tileElementNegativeVy.id === 'top' || tileElementNegativeVy.id === 'left' || tileElementNegativeVy.id === 'tree' || tileElementNegativeVy.id === 'down') fnvy = true;
         }
-
-        const tileElements = [
-            tileElementPositiveVx,
-            tileElementNegativeVx,
-            tileElementPositiveVy,
-            tileElementNegativeVy
-        ];
-        tileElements.forEach(tileElement => {
-            if (tileElement && (tileElement.id === 'tree' || Status.allowd[tileElement.id])) {
-                const rect = tileElement.getBoundingClientRect();
-                exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
-
-                if (tileElement.id === 'tree') {
-                    let row = tileElement.getAttribute('data-row')
-                    let col = tileElement.getAttribute('data-col')
-
-                    ws.send(JSON.stringify({
-                        type: "generet_item",
-                        row,
-                        col,
-                    }))
-                }
-                let playersPos = Status.players;
-                for (const [key, value] of Object.entries(playersPos)) {
-                    let playerPos = getPlayerTiles(value.xPos, value.yPos)
-
-                    playerPos.uniqueTiles.forEach((tile) => {
-                        if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col') && !flage) {
-
-                            Status.life[key] -= 1
-                            // console.log(Status.life);
-
-                            if (Status.life[key] === 2) {
-                                // if (key === nickname) {
-                                //     Status.isGameOver = true
-                                //     // return
-                                // }
-                                // let players = StateManagement.get().MapState.players
-                                // delete players[key]
-                                Status.playersDead[key] = true
-                                // console.log("dead players",Status.playersDead);
-                                // console.log("all players", players);
-
-                                // console.log(playerRegistry.otherPlayers[key]);
-                                // delete playerRegistry.otherPlayers[key]
-                                // console.log(playerRegistry.otherPlayers[key]);
-
-                                // StateManagement.set({ MapState: { ...StateManagement.get().MapState, players: players } })
-
-                                // console.log(Object.keys(StateManagement.get().MapState.players).length , Object.keys(Status.playersDead).length + 1);
-                                
-                            }
-
-                            flage = 1;
-                        }
-                    })
-                }
-            }
-        });
-        StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
     }
+
+    console.log("box",tileElements);
+    
+    tileElements.forEach(tileElement => {
+        if (tileElement && (tileElement.id === 'tree' || Status.allowd[tileElement.id])) {
+            const rect = tileElement.getBoundingClientRect();
+            exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
+
+            if (tileElement.id === 'tree') {
+                let row = tileElement.getAttribute('data-row')
+                let col = tileElement.getAttribute('data-col')
+
+                ws.send(JSON.stringify({
+                    type: "generet_item",
+                    row,
+                    col,
+                }))
+            }
+            let playersPos = Status.players;
+
+            for (const [key, value] of Object.entries(playersPos)) {
+                let playerPos = getPlayerTiles(value.xPos, value.yPos)
+                playerPos.uniqueTiles.forEach((tile) => {
+                    console.log(key, flage);
+                    console.log(playerKilled);
+                    console.log("---------------------------");
+
+
+                    if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col') && !flage) {
+                        Status.life[key] -= 1
+                        if (Status.life[key] === 0) {
+                            Status.playersDead[key] = true
+                        }
+                        playerKilled = key
+                        flage = 1;
+                    }
+                })
+            }
+        }
+        StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
+
+    });
 }
 
 function handleExplosions(bombsfiler) {
@@ -554,8 +544,6 @@ function CurrPlayer(pos = [1, 1]) {
                         if (Status.Speed < 2) {
                             Status.Speed += 0.5
                         }
-                        console.log(Status.Speed);
-
                         sendGetItem(tile.id)
                         break;
                 }
