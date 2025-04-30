@@ -1,4 +1,4 @@
-import { nickname, router, ws } from "./app.js";
+import { nickname, ws } from "./app.js";
 import { StateManagement, vdm, getId, EventSystem } from "./miniframework.js";
 import { Status } from "./status.js";
 
@@ -18,7 +18,6 @@ let isMoving = false;
 let lastDirection = "down";
 let skipCorner = { x: 0, y: 0 };
 let lastClass = ""
-let isResize = true
 let startTime = 0
 
 function vdmExplosion(explo) {
@@ -36,7 +35,6 @@ function vdmExplosion(explo) {
             --bomb-sheet-width: ${192 * spriteScaleFactor}px;`
     });
 }
-let i = 0;
 function explosionEffect(top, left, bombPower = Status.bombPower) {
 
     let tileElementPositiveVx, tileElementNegativeVx, tileElementPositiveVy, tileElementNegativeVy;
@@ -47,7 +45,6 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
 
     let flage = 0;
     let playerKilled = {};
-    let tileElements = []
     const isAllowed = {
         'toba': true,
         'right': true,
@@ -116,7 +113,6 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                 }
             }
         });
-        StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
     }
     for (const [key, value] of Object.entries(playerKilled)) {
         if (value === true) {
@@ -126,6 +122,7 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
             }
         }
     }
+    StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
 }
 
 function handleExplosions(bombsfiler) {
@@ -146,7 +143,7 @@ function handleExplosions(bombsfiler) {
 function handleExplosionsEffect(exploFilter) {
     let ischangeExp = false
     exploFilter = exploFilter.filter(explo => {
-        if (Date.now() - explo.time > 1000) {
+        if (Date.now() - explo.time > 900) {
             ischangeExp = true
             return false
         }

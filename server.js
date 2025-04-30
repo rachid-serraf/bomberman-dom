@@ -78,7 +78,6 @@ let rooms = {
   // usersConnection: ,
   // },
 };
-// let map = []
 
 wss.on("connection", (ws) => {
   let nickname = null;
@@ -228,7 +227,7 @@ wss.on("connection", (ws) => {
         broadcastToRoom(roomID, data, nickname)
       },
       "generet_item": function () {
-        let por = [0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
+        let por = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
         let random = Math.round(Math.random() * 9);
         let item = 11
         if (por[random] === 1) {

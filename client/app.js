@@ -138,6 +138,8 @@ let left_time = 20
 let nickname
 let messages = []
 function sendMessage(message) {
+  if (message.trim().length === 0) return
+
   document.getElementById("message").value = "";
   ws.send(JSON.stringify({ type: "chat", message: message, nickname: nickname }));
 }
