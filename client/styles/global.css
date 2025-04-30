@@ -139,6 +139,8 @@ body {
   background-color: oldlace;
   text-align: center;
   border-radius: 19px;
+  font-size: 1vw;
+  padding: 1px 5px;
 }
 
 .bomb {

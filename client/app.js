@@ -258,7 +258,6 @@ function enter(nickname1) {
     }
     if (data.type === "get_item") {
       let mp = StateManagement.get().MapState.map
-      console.log(data);
 
       mp[data.xgrid][data.ygrid] = 11
       StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })

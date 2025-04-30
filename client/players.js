@@ -110,30 +110,6 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                     playerPos.uniqueTiles.forEach((tile) => {
                         if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col')) {
                             playerKilled[key] = true;
-                            // Status.life[key] -= 1
-                            // // console.log(Status.life);
-
-                            // if (Status.life[key] === 2) {
-                            //     // if (key === nickname) {
-                            //     //     Status.isGameOver = true
-                            //     //     // return
-                            //     // }
-                            //     // let players = StateManagement.get().MapState.players
-                            //     // delete players[key]
-                            //     Status.playersDead[key] = true
-                            //     // console.log("dead players",Status.playersDead);
-                            //     // console.log("all players", players);
-
-                            //     // console.log(playerRegistry.otherPlayers[key]);
-                            //     // delete playerRegistry.otherPlayers[key]
-                            //     // console.log(playerRegistry.otherPlayers[key]);
-
-                            //     // StateManagement.set({ MapState: { ...StateManagement.get().MapState, players: players } })
-
-                            //     // console.log(Object.keys(StateManagement.get().MapState.players).length , Object.keys(Status.playersDead).length + 1);
-                                
-                            // }
-
                             flage = 1;
                         }
                     })
@@ -150,8 +126,6 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
             }
         }
     }
-
-    // StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
 }
 
 function handleExplosions(bombsfiler) {
@@ -599,7 +573,6 @@ function CurrPlayer(pos = [1, 1]) {
             else if (canMove(newXPos, yPos).canMove === false) {
                 updateCornering(canMove(newXPos, yPos));
             }
-            // if (moved) console.log(getPlayerTiles(xPos, yPos).uniqueTiles);
 
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
 
@@ -711,9 +684,6 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
                 Status.players[nam] = { xPos, yPos };
             }
         }
-
-        // playerRegistry.oldTileSize = Status.tileSize;
-        // isResize = false
     }
 
     return (
@@ -722,6 +692,6 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
             class: "current-player idle-down",
             ref: initPlayer,
         },
-            vdm("div", { class: "name_up_player" }, nam)
+            vdm("div", { class: "name_up_player" }, (nam.length > 5 ) ? nam.slice(0,5)+ ".." : nam )
         ));
 }

@@ -1,15 +1,18 @@
 import { EventSystem, vdm } from "./miniframework.js";
 import { room, left_time, sendMessage, messages } from "./app.js";
+import { Status } from "./status.js";
 
 export { waitingChattingPage, chatting, waiting, EmotesCat };
 
 function chatting() {
+  
   let inputNode = null;
   function handleclick(e) {
     e.preventDefault();
     const message = inputNode.value;
     sendMessage(message);
     inputNode.value = "";
+    Status.onInputMsg = "";
   }
   return vdm("div", { class: "chat-container" }, [
     vdm("div", { class: "chat-header" }, [
@@ -20,8 +23,6 @@ function chatting() {
 
         const messageClass = msg.is_mine ? "user-message" : "other-message";
         const senderName = msg.is_mine ? "You" : msg.nickname;
-        console.log(msg.is_mine);
-
 
         return vdm("div", { class: `message ${messageClass}` }, [
           vdm("div", { class: "message-sender" }, [senderName]),
@@ -36,6 +37,11 @@ function chatting() {
         id: "message",
         placeholder: "Type your message...",
         ref: (el) => { inputNode = el },
+        oninput: (e) => {
+          Status.onInputMsg = e.target.value
+        },
+        value: Status.onInputMsg,
+        autofocus:true
       }),
       vdm("button", { class: "send-button", onclick: (e) => { handleclick(e) } }, ["Send"]),
     ]),

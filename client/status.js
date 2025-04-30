@@ -14,4 +14,5 @@ export const Status = {
   life: {},
   isGameOver: false,
   playersDead: {},
+  onInputMsg: "",
 }

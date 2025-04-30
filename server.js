@@ -12,7 +12,7 @@ const CONFIG = {
     2: [9, 1],
     3: [9, 13],
   },
-  WITE_TIME: 5
+  WITE_TIME: 20
 }
 const server = http.createServer(handleRequest);
 
@@ -35,7 +35,6 @@ const baseDir = path.join(__dirname, 'client');
 const indexPath = path.join(baseDir, 'index.html');
 function handleRequest(req, res) {
   if (req.url === "/waiting" || req.url === "/game") {
-    console.log("redirecting")
     res.writeHead(302, { Location: '/' });
     res.end();
     return;
@@ -98,7 +97,6 @@ wss.on("connection", (ws) => {
         // Check for available room or create a new room
         roomID = findAvailableRoom(nickname);
         if (!roomID) {
-          console.log("create room")
           roomID = `room-${Date.now()}`;
           rooms[roomID] = {
             players: [nickname],
@@ -201,8 +199,6 @@ wss.on("connection", (ws) => {
             }
           }
 
-          // let a = map.flat().filter(v => v === 10).length;
-
         }
         mpbuild()
 
@@ -211,7 +207,6 @@ wss.on("connection", (ws) => {
         for (let i = 0; i < pl.length; i++) {
           playersPos[pl[i]] = CONFIG.DEF_POS[i]
         }
-        console.log("set player pos", playersPos);
 
         broadcastToRoom(roomID, {
           type: "map_Generet",
@@ -258,7 +253,6 @@ wss.on("connection", (ws) => {
   // Handle WebSocket close event
   ws.on("close", () => {
     console.log("Player disconnected");
-    // Remove the player from the room
     if (nickname && roomID) {
       const room = rooms[roomID];
       if (room) {
