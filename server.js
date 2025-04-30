@@ -34,7 +34,7 @@ const __dirname = dirname(__filename);
 const baseDir = path.join(__dirname, 'client');
 const indexPath = path.join(baseDir, 'index.html');
 function handleRequest(req, res) {
-  if (req.url === "/waiting" || req.url === "/game") {
+  if (req.url === "/waiting" || req.url === "/game" || req.url === "/starting") {
     res.writeHead(302, { Location: '/' });
     res.end();
     return;

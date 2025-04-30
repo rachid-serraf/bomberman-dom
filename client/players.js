@@ -116,10 +116,12 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
     }
     for (const [key, value] of Object.entries(playerKilled)) {
         if (value === true) {
-            Status.life[key] -= 1
-            if (Status.life[key] === 0) {
-                Status.playersDead[key] = true
-            }
+            setTimeout(() => {
+                Status.life[key] -= 1
+                if (Status.life[key] === 0) {
+                    Status.playersDead[key] = true
+                }
+            }, 400);
         }
     }
     StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
@@ -689,6 +691,6 @@ function SetOtherPlayerAndMove(isMove, data, nam, initialPos = [1, 1]) {
             class: "current-player idle-down",
             ref: initPlayer,
         },
-            vdm("div", { class: "name_up_player" }, (nam.length > 5 ) ? nam.slice(0,5)+ ".." : nam )
+            vdm("div", { class: "name_up_player" }, (nam.length > 5) ? nam.slice(0, 5) + ".." : nam)
         ));
 }

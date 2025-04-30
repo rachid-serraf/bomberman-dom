@@ -158,18 +158,21 @@
   align-self: flex-end;
   background-color: #2d6d32;
   color: #ffffff;
+  font-size: 2vh;
 }
 
 .other-message {
   align-self: flex-start;
   background-color: #3d3d3d;
   color: #ffffff;
+  font-size: 2vh;
 }
 
 .message-sender {
   font-size: 12px;
   margin-bottom: 4px;
   opacity: 0.7;
+  font-size: 2vh;
 }
 
 .chat-input-container {
