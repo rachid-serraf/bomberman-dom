@@ -137,6 +137,7 @@ wss.on("connection", (ws) => {
         });
         if (rooms[roomID].players.length === 4) {
           rooms[roomID].state = "locked"; // Room is locked when full
+          rooms[roomID].timer = -10
         }
       },
       //--------------------------------------------------------------------------

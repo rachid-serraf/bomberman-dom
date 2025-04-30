@@ -43,9 +43,6 @@ function chatting() {
 }
 
 function waiting() {
-  // console.log("waiting render");
-  // console.log(EventSystem.events);
-
   let players = room.players || []
   const maxPlayers = 4;
   const connectedPlayers = players.map((name) =>
@@ -113,16 +110,6 @@ export function endGame(type = "win") {
       vdm("div", { id: `${idTitle}` }, `${msgTitle}`),
       vdm("button", { class: "btn_add_name", onClick: () => location.reload() }, "replay"),
       EmotesCat(nbr, msgCon, false)
-      // vdm(
-      //   "div",
-      //   { class: "contaner_emotes" },
-      //   vdm("div", { class: "emotes_cat" }),
-      //   vdm(
-      //     "div",
-      //     { class: "message_emotes" },
-      //     vdm("p", {}, `${msgCon}`)
-      //   )
-      // )
     )
   )
 }

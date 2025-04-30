@@ -181,7 +181,7 @@ function enter(nickname1) {
   }
   //"ws://10.1.8.2 :8080"
 
-  ws = new WebSocket("ws://10.1.8.2:8080");
+  ws = new WebSocket(`ws://${window.location.hostname}:8080`);
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {
@@ -213,7 +213,8 @@ function enter(nickname1) {
         router.link("/starting")
       }
 
-    } else if (data.type === "player_left") {
+    } else if (data.type === "room_locked") {
+      router.link("/starting")
 
     } else if (data.type === "chat") {
       let is_mine = data.nickname === nickname
@@ -251,13 +252,14 @@ function enter(nickname1) {
       });
     }
     if (data.type === "set_item") {
-      // console.log(data);
       let mp = StateManagement.get().MapState.map
       mp[data.row][data.col] = data.item
       StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
     }
     if (data.type === "get_item") {
       let mp = StateManagement.get().MapState.map
+      console.log(data);
+
       mp[data.xgrid][data.ygrid] = 11
       StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
     }
