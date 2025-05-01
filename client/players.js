@@ -21,6 +21,10 @@ let lastClass = ""
 let startTime = 0
 
 function vdmExplosion(explo) {
+    let tile = document.querySelector(
+        `[data-row="${explo.row}"][data-col="${explo.col}"]`
+    );
+    const rect = tile.getBoundingClientRect();
     const spriteScaleFactor = Status.tileSize / 32;
 
     return vdm("div", {
@@ -29,7 +33,7 @@ function vdmExplosion(explo) {
         style: `
             width: ${Status.tileSize}px;
             height: ${Status.tileSize}px;
-            transform: translate(${explo.left}px, ${explo.top}px);
+            transform: translate(${rect.left}px, ${rect.top}px);
             --bomb-width: ${32 * spriteScaleFactor}px;
             --bomb-height: ${32 * spriteScaleFactor}px;
             --bomb-sheet-width: ${192 * spriteScaleFactor}px;`
@@ -45,15 +49,10 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
 
     let flage = 0;
     let playerKilled = {};
-    const isAllowed = {
-        'toba': true,
-        'right': true,
-        'top': true,
-        'left': true,
-        'tree': true,
-        'down': true,
-    }
-    for (let index = 0; index < bombPower; index++) {
+
+    exploAdd.push({ nickname, row: top, col: left, time })
+    killPlayer(top, left);
+    for (let index = 1; index < bombPower; index++) {
         if (fpvx === false) {
             tileElementPositiveVx = document.querySelector(
                 `[data-row="${top}"][data-col="${left + index}"]`
@@ -85,14 +84,14 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
             tileElementPositiveVy,
             tileElementNegativeVy
         ];
+
         tileElements.forEach(tileElement => {
             if (tileElement && (tileElement.id === 'tree' || Status.allowd[tileElement.id])) {
-                const rect = tileElement.getBoundingClientRect();
-                exploAdd.push({ nickname, top: rect.top, left: rect.left, time })
+                let row = tileElement.getAttribute('data-row')
+                let col = tileElement.getAttribute('data-col')
+                exploAdd.push({ nickname, row, col, time })
 
                 if (tileElement.id === 'tree') {
-                    let row = tileElement.getAttribute('data-row')
-                    let col = tileElement.getAttribute('data-col')
 
                     ws.send(JSON.stringify({
                         type: "generet_item",
@@ -100,39 +99,49 @@ function explosionEffect(top, left, bombPower = Status.bombPower) {
                         col,
                     }))
                 }
-                let playersPos = Status.players;
-                for (const [key, value] of Object.entries(playersPos)) {
-                    let playerPos = getPlayerTiles(value.xPos, value.yPos)
-
-                    playerPos.uniqueTiles.forEach((tile) => {
-                        if (tile.gridY + 1 == tileElement.getAttribute('data-row') && tile.gridX + 1 == tileElement.getAttribute('data-col')) {
-                            playerKilled[key] = true;
-                            flage = 1;
-                        }
-                    })
-                }
+                killPlayer(row, col);
             }
         });
     }
-    for (const [key, value] of Object.entries(playerKilled)) {
-        if (value === true) {
-            setTimeout(() => {
-                Status.life[key] -= 1
-                if (Status.life[key] === 0) {
-                    Status.playersDead[key] = true
+    function killPlayer(row, col) {
+        let playersPos = Status.players;
+        for (const [key, value] of Object.entries(playersPos)) {
+            let playerPos = getPlayerTiles(value.xPos, value.yPos)
+
+            playerPos.uniqueTiles.forEach((tile) => {
+                if (tile.gridY + 1 == row && tile.gridX + 1 == col) {
+                    playerKilled[key] = true;
+                    flage = 1;
                 }
-            }, 400);
+            })
         }
     }
-    StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...exploAdd] })
+
+    for (const [key, value] of Object.entries(playerKilled)) {
+        if (value === true) {
+            Status.life[key] -= 1
+            if (Status.life[key] === 0) {
+                Status.playersDead[key] = true
+            }
+        }
+    }
+
+    ws.send(JSON.stringify({
+        type: "explo_effect",
+        exploAdd
+    }))
+    ws.send(JSON.stringify({
+        type: "players_life",
+        life: Status.life
+    }))
 }
 
 function handleExplosions(bombsfiler) {
     let ischange = false
     bombsfiler = bombsfiler.filter(bomb => {
         if (Date.now() - bomb.time > Status.TIME_EXPLOSION_BOMB) {
-            explosionEffect(bomb.xgrid, bomb.ygrid, bomb.bombPower)
             if (bomb.nickname === nickname) {
+                explosionEffect(bomb.xgrid, bomb.ygrid, bomb.bombPower)
                 Status.numberCanSetBomb += 1
             }
             ischange = true
@@ -323,7 +332,6 @@ function CurrPlayer(pos = [1, 1]) {
             updatePlayerState("idle");
             Status.players[nickname] = { xPos, yPos }
         }
-        // const ss = (e) => { keysPressed[e.key] = true; }
         EventSystem.add(document, "keydown", (e) => { keysPressed[e.key] = true; });
         EventSystem.add(document, "keyup", (e) => { keysPressed[e.key] = false; });
 
@@ -460,7 +468,7 @@ function CurrPlayer(pos = [1, 1]) {
 
     function startGameLoop() {
         function gameLoop(timetamp) {
-            if (Status.playersDead[nickname]) {
+            if (Status.life[nickname] === 0) {
                 StateManagement.set({ endGame: { type: "loss" } })
                 ws.close()
                 return
@@ -576,7 +584,9 @@ function CurrPlayer(pos = [1, 1]) {
             currPlayer.style.transform = `translate(${xPos}px, ${yPos}px)`;
 
             let { ischange, bombsfiler } = handleExplosions(StateManagement.get()?.bombs || [])
-            if (ischange) StateManagement.set({ bombs: bombsfiler })
+            if (ischange) {
+                StateManagement.set({ bombs: bombsfiler })
+            }
 
             let { ischangeExp, exploFilter } = handleExplosionsEffect(StateManagement.get()?.explosions || [])
             if (ischangeExp) StateManagement.set({ explosions: exploFilter })

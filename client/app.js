@@ -265,11 +265,16 @@ function enter(nickname1) {
       mp[data.xgrid][data.ygrid] = 11
       StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
     }
+    if (data.type === "explo_effect") {
+      StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...data.exploAdd] })
+    }
+    if (data.type === "players_life") {
+      Status.life = data.life
+    }
   };
 
   ws.onclose = function () {
     console.log("Disconnected from server");
-    // router.link("/");
   };
 
   ws.onerror = function (error) {
@@ -328,10 +333,10 @@ StateManagement.subscribe((state) => {
   if (state.MapState !== lastState.MapState ||
     state.bombs !== lastState.bombs ||
     state.explosions !== lastState.explosions) {
-  
-      setRoot('app')
-      renderComponent(gameLayout)
-    
+
+    setRoot('app')
+    renderComponent(gameLayout)
+
   }
 
   // StateManagement.set({endGame : {type:"win"}})

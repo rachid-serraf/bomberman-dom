@@ -243,6 +243,12 @@ wss.on("connection", (ws) => {
       },
       "get_item": function () {
         broadcastToRoom(roomID, data)
+      },
+      "explo_effect": function () {
+        broadcastToRoom(roomID, data)
+      },
+      "players_life": function () {
+        broadcastToRoom(roomID, data)
       }
 
     }

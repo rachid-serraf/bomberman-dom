@@ -5,7 +5,7 @@ import { Status } from "./status.js";
 export { waitingChattingPage, chatting, waiting, EmotesCat };
 
 function chatting() {
-  
+
   let inputNode = null;
   function handleclick(e) {
     e.preventDefault();
@@ -14,11 +14,16 @@ function chatting() {
     inputNode.value = "";
     Status.onInputMsg = "";
   }
+  function scrollRef(e) {
+    setTimeout(() => {
+      e.scrollTop = e.scrollHeight - e.clientHeight;
+    })
+  }
   return vdm("div", { class: "chat-container" }, [
     vdm("div", { class: "chat-header" }, [
       vdm("h2", {}, ["Game Chat"]),
     ]),
-    vdm("div", { class: "chat-messages" },
+    vdm("div", { class: "chat-messages", ref: scrollRef },
       messages.map(msg => {
 
         const messageClass = msg.is_mine ? "user-message" : "other-message";
@@ -36,12 +41,15 @@ function chatting() {
         class: "chat-input",
         id: "message",
         placeholder: "Type your message...",
-        ref: (el) => { inputNode = el },
+        ref: (el) => {
+          inputNode = el
+          // el.focus()
+          // el.setSelectionRange(Status.onInputMsg.length, Status.onInputMsg.length)
+        },
         oninput: (e) => {
           Status.onInputMsg = e.target.value
         },
         value: Status.onInputMsg,
-        autofocus:true
       }),
       vdm("button", { class: "send-button", onclick: (e) => { handleclick(e) } }, ["Send"]),
     ]),
