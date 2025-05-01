@@ -146,7 +146,7 @@ body {
 .bomb {
   top: 0;
   left: 0;
-  background-image: url('../Assets/bomb/dynamite.png');
+  background-image: url('../Assets/bomb/dynamite-pack.png');
   image-rendering: pixelated;
   background-size: var(--bomb-sheet-width) auto;
   position: absolute;

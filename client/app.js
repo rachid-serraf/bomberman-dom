@@ -2,9 +2,10 @@ import { chatting, waitingChattingPage, waiting, endGame, EmotesCat } from "./ht
 import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
-import { CurrPlayer, SetOtherPlayerAndMove, vdmBombs, vdmExplosion } from "./players.js";
+import { CurrPlayer, SetOtherPlayerAndMove } from "./players.js";
 import { Status } from "./status.js";
 import { updatePositons } from "./players.js";
+import { vdmBombs, vdmExplosion } from "./bombEffect.js";
 
 setRoot("app")
 const router = new Router(renderComponent)
@@ -144,7 +145,7 @@ function sendMessage(message) {
   ws.send(JSON.stringify({ type: "chat", message: message, nickname: nickname }));
 }
 
-let timer = 3;
+let timer = 10;
 const starting = () => {
   let timerNode = null;
   let messageNode = null;
@@ -231,19 +232,21 @@ function enter(nickname1) {
     }
     if (data.type === "map_Generet") {
       StateManagement.set({ MapState: data })
-      EventSystem.add(window, 'resize', () => {
-        if (window.isResizing || StateManagement.get().endGame) return;
-        window.isResizing = true;
+      setTimeout(() => {
+        EventSystem.add(window, 'resize', () => {
+          if (window.isResizing || StateManagement.get().endGame) return;
+          window.isResizing = true;
 
-        setRoot("app")
-        renderComponent(gameLayout);
+          setRoot("app")
+          renderComponent(gameLayout);
 
-        setTimeout(() => {
-          updatePositons();
-          window.isResizing = false;
-        }, 100);
+          // setTimeout(() => {
+            updatePositons();
+            window.isResizing = false;
+          // }, 0);
 
-      }, true);
+        }, true);
+      }, 10)
     }
     if (data.type === "player_moveng") {
       // Status.players[data.nickname] = { xPos: data.xPos, yPos: data.yPos }
@@ -309,7 +312,7 @@ router
 router.setNotFound(() =>
   vdm("div", {},
     vdm("h1", {}, "custum page not fund"),
-    vdm("button", { onClick: () => router.link("/") }, `go to ${path}`)
+    vdm("button", { onClick: () => router.link("/") }, `go to home`)
   )
 )
 
@@ -333,13 +336,10 @@ StateManagement.subscribe((state) => {
   if (state.MapState !== lastState.MapState ||
     state.bombs !== lastState.bombs ||
     state.explosions !== lastState.explosions) {
-
     setRoot('app')
     renderComponent(gameLayout)
-
   }
 
-  // StateManagement.set({endGame : {type:"win"}})
   if (state.endGame !== lastState.endGame) {
     setRoot('app')
     if (state.endGame.type === "loss") {
