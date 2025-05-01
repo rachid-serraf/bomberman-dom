@@ -12,7 +12,7 @@ const CONFIG = {
     2: [9, 1],
     3: [9, 13],
   },
-  WITE_TIME: 20
+  WITE_TIME: 6
 }
 const server = http.createServer(handleRequest);
 
@@ -227,7 +227,7 @@ wss.on("connection", (ws) => {
         broadcastToRoom(roomID, data, nickname)
       },
       "generet_item": function () {
-        let por = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+        let por = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
         let random = Math.round(Math.random() * 9);
         let item = 11
         if (por[random] === 1) {

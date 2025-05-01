@@ -144,7 +144,7 @@ function sendMessage(message) {
   ws.send(JSON.stringify({ type: "chat", message: message, nickname: nickname }));
 }
 
-let timer = 10;
+let timer = 3;
 const starting = () => {
   let timerNode = null;
   let messageNode = null;
@@ -222,11 +222,12 @@ function enter(nickname1) {
       let is_mine = data.nickname === nickname
       messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
 
-
       StateManagement.set({
         chat: data,
       })
-
+    } else if (data.type === "player_left") {
+      Status.life[data.nickname] = 0
+      Status.playersDead[data.nickname] = true
     }
     if (data.type === "map_Generet") {
       StateManagement.set({ MapState: data })
@@ -327,8 +328,10 @@ StateManagement.subscribe((state) => {
   if (state.MapState !== lastState.MapState ||
     state.bombs !== lastState.bombs ||
     state.explosions !== lastState.explosions) {
-    setRoot('app')
-    renderComponent(gameLayout)
+  
+      setRoot('app')
+      renderComponent(gameLayout)
+    
   }
 
   // StateManagement.set({endGame : {type:"win"}})
