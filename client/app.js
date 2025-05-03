@@ -172,7 +172,7 @@ const starting = () => {
 
 function enter(nickname1) {
   messages = []
-  nickname = nickname1
+  nickname = nickname1.trim()
 
   if (!nickname) {
     alert("Please enter a nickname.");
@@ -182,9 +182,10 @@ function enter(nickname1) {
     alert("Nickname must be 2 characters or more.");
     return;
   }
-  //"ws://10.1.8.2 :8080"
-
-  ws = new WebSocket(`ws://${window.location.hostname}:8080`);
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const hostname = window.location.hostname;
+  const port = window.location.port ? `:${window.location.port}` : "";
+  ws = new WebSocket(`${protocol}://${hostname}${port}`);
 
   // onopen event is triggered when the connection is established
   ws.onopen = function () {
