@@ -79,8 +79,9 @@
   color: #b0b0b0;
 }
 
+
 .player-status.online {
-  color: #4caf50;
+  color: #14bd14;
 }
 
 .player-status.ready {
@@ -121,11 +122,11 @@
   }
 }
 
-.chat-header {
-  padding: 15px 20px;
-  background-color: #333333;
-  color: white;
-  border-bottom: 1px solid #3d3d3d;
+.chat-header{
+    padding: 15px 20px;
+    background-color: var(--tan);
+    color: #292828;
+    /* border-bottom: 1px solid #3d3d3d; */
 }
 
 .chat-header h2 {
@@ -138,8 +139,8 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  background-color: #654734;
 }
-
 .message {
   margin-bottom: 15px;
   max-width: 70%;
@@ -147,17 +148,17 @@
   border-radius: 8px;
 }
 
-.user-message {
-  align-self: flex-end;
-  background-color: #2d6d32;
-  color: #ffffff;
-  font-size: 2vh;
+.user-message{
+    align-self: flex-end;
+    background-color: var(--tan);
+    color: #000;
+    font-size: 2vh;
 }
 
 .other-message {
   align-self: flex-start;
-  background-color: #3d3d3d;
-  color: #ffffff;
+  background-color: #ab824b;
+  color: #000;
   font-size: 2vh;
 }
 
@@ -170,25 +171,26 @@
 
 .chat-input-container {
   padding: 15px;
-  background-color: #333333;
-  border-top: 1px solid #3d3d3d;
-  display: flex;
+  background-color: var(--tan);
+  /* border-top: 1px solid #3d3d3d; */
+  display: flex
+;
 }
 
 .chat-input {
   flex: 1;
   padding: 10px 15px;
-  border: 1px solid #444444;
+  border: none;
   border-radius: 20px;
   outline: none;
-  background-color: #2a2a2a;
-  color: #ffffff;
+  background-color: var(--ivory);
+  color: #111;
 }
 
 .send-button {
   margin-left: 10px;
   padding: 10px 15px;
-  background-color: #4caf50;
+  background-color: var(--tan-2);
   color: white;
   border: none;
   border-radius: 20px;
