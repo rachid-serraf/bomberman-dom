@@ -132,8 +132,7 @@ function diffing(root, oldVDOM, newVDOM, index = 0) {
     else root.appendChild(render(newVDOM));
     return;
   }
-
-  if (currentChild) {
+  if (currentChild && currentChild.nodeType === Node.ELEMENT_NODE) {
     for (const attr in newVDOM.attrs) {
       if (attr === "checked") {
         if (currentChild.checked !== newVDOM.attrs[attr]) {

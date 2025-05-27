@@ -261,6 +261,7 @@ wss.on("connection", (ws) => {
     if (nickname && roomID) {
       const room = rooms[roomID];
       if (room) {
+        room.usersConnection =  new Map(Array.from(room.usersConnection).filter(([_, v]) => v != nickname))
         room.players = room.players.filter((player) => player !== nickname);
         if (room.players.length === 0) {
           delete rooms[roomID]; // Remove room if no players left

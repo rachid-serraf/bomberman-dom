@@ -242,8 +242,8 @@ function enter(nickname1) {
           renderComponent(gameLayout);
 
           // setTimeout(() => {
-            updatePositons();
-            window.isResizing = false;
+          updatePositons();
+          window.isResizing = false;
           // }, 0);
 
         }, true);
@@ -350,15 +350,12 @@ StateManagement.subscribe((state) => {
     }
   }
 
-  if (state.countdown !== lastState.countdown) {
+  if (state.countdown !== lastState.countdown && path === "/starting") {
     setRoot("leftSide")
     renderComponent(starting)
   }
 
+
   lastState = StateManagement.get()
 })
 
-
-// state managment to work darori
-// khas ay event jdid tzidlo we7da b7al hadi
-// EventSystem.add(document.body, "click", () => { }, true)

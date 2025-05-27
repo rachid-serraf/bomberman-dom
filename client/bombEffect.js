@@ -9,6 +9,8 @@ function vdmExplosion(explo) {
     let tile = document.querySelector(
         `[data-row="${explo.row}"][data-col="${explo.col}"]`
     );
+    if (!tile) return;
+
     const rect = tile.getBoundingClientRect();
     const spriteScaleFactor = Status.tileSize / 32;
 
@@ -151,6 +153,8 @@ function vdmBombs(xgrid, ygrid) {
     const tileElement = document.querySelector(
         `[data-row="${xgrid}"][data-col="${ygrid}"]`
     );
+    if (!tileElement) return;
+
     const rect = tileElement.getBoundingClientRect();
     const spriteScaleFactor = Status.tileSize / 32;
 
