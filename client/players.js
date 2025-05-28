@@ -127,9 +127,13 @@ function CurrPlayer(pos = [1, 1]) {
 
         currPlayer = ele
         const tileElementInit = document.querySelector(`[data-row="1"][data-col="1"]`);
-        if (!tileElementInit) return
+        // new edit
+        if (!tileElementInit) {
+            setTimeout(() => initGame(ele), 100);
+            return;
+        }
         const tileRectInit = tileElementInit.getBoundingClientRect();
-        
+
         let diff = (Status.tileSize / 100) * 10;
 
         playerWidth = Status.tileSize - diff;

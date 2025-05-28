@@ -5,53 +5,54 @@ import { Status } from "./status.js";
 export { waitingChattingPage, chatting, waiting, EmotesCat };
 
 function chatting() {
-
-  let inputNode = null;
-  function handleclick(e) {
+  // new edit
+  function handleSubmit(e) {
     e.preventDefault();
-    const message = inputNode.value;
+    if (Status.gameInitializing) return;
+
+    const message = e.target.message.value.trim();
+    if (!message) return;
+
     sendMessage(message);
-    inputNode.value = "";
     Status.onInputMsg = "";
+    e.target.reset();
   }
+
   function scrollRef(e) {
     setTimeout(() => {
       e.scrollTop = e.scrollHeight - e.clientHeight;
-    })
+    });
   }
+
   return vdm("div", { class: "chat-container" }, [
     vdm("div", { class: "chat-header" }, [
-      vdm("h2", {}, ["Game Chat"]),
+      vdm("h2", {}, "Game Chat"),
     ]),
     vdm("div", { class: "chat-messages", ref: scrollRef },
-      messages.map(msg => {
-
-        const messageClass = msg.is_mine ? "user-message" : "other-message";
-        const senderName = msg.is_mine ? "You" : msg.nickname;
-
-        return vdm("div", { class: `message ${messageClass}` }, [
-          vdm("div", { class: "message-sender" }, [senderName]),
+      messages.map(msg => (
+        vdm("div", { class: `message ${msg.is_mine ? "user-message" : "other-message"}` }, [
+          vdm("div", { class: "message-sender" }, msg.is_mine ? "You" : msg.nickname),
           msg.message,
-        ]);
-      })
+        ])
+      ))
     ),
-    vdm("form", { class: "chat-input-container" }, [
+    vdm("form", {
+      class: "chat-input-container",
+      onsubmit: handleSubmit,
+      method: "POST"
+    }, [
       vdm("input", {
         type: "text",
-        class: "chat-input",
         id: "message",
-        placeholder: "Type your message...",
-        ref: (el) => {
-          inputNode = el
-          // el.focus()
-          // el.setSelectionRange(Status.onInputMsg.length, Status.onInputMsg.length)
-        },
+        name: "message",
+        placeholder: Status.gameInitializing ? "Starting game..." : "Type your message...",
+        class: `chat-input ${Status.gameInitializing ? "disabled-input" : ""}`,
+        ...(Status.gameInitializing ? { readonly: true } : {}),
         oninput: (e) => {
-          Status.onInputMsg = e.target.value
+          Status.onInputMsg = e.target.value;
         },
         value: Status.onInputMsg,
       }),
-      vdm("button", { class: "send-button", onclick: (e) => { handleclick(e) } }, ["Send"]),
     ]),
   ]);
 }

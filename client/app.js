@@ -1,5 +1,5 @@
 import { chatting, waitingChattingPage, waiting, endGame, EmotesCat } from "./htmls.js";
-import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
+import { EventSystem, rootElement, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
 import { CurrPlayer, SetOtherPlayerAndMove } from "./players.js";
@@ -18,7 +18,11 @@ function Game() {
 
   let MapState = StateManagement.get().MapState
 
-  if (!MapState) return vdm("div", {}, "loding map...")
+  // newEdit
+  if (!MapState || !MapState.map || MapState.map.length === 0) {
+    return vdm("div", {}, "Loading map...")
+  }
+
   function draw() {
     let tiles = []
     for (let row = 0; row < MapState.map.length; row++) {
@@ -150,11 +154,15 @@ const starting = () => {
   let timerNode = null;
   let messageNode = null;
   if (timer == 0) {
+    Status.gameInitializing = false;
     timer = 10;
     router.link("/game")
     ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }))
     return
   }
+  // new edit 
+  Status.gameInitializing = (timer === 1);
+
   setTimeout(() => {
     timer--;
     StateManagement.set({
@@ -162,6 +170,7 @@ const starting = () => {
     })
   }, 1000);
 
+  setRoot("leftSide");
   return vdm("div", { class: "count10_holder" }, [
     vdm("h1", {}, "Countdown Timer"),
     vdm("div", { id: "count10_timer", ref: (el) => { timerNode = el; } }, `${timer}`),
@@ -319,6 +328,7 @@ router.setNotFound(() =>
 
 StateManagement.subscribe((state) => {
   const path = window.location.pathname
+
   if (state.chat !== lastState.chat) {
     if (path === "/waiting" || path === "/starting") {
       setRoot('rightSide')
@@ -327,11 +337,11 @@ StateManagement.subscribe((state) => {
       setRoot('app')
       renderComponent(gameLayout);
     }
-  }
-
-  if (state.waiting !== lastState.waiting) {
+  } else if (state.waiting !== lastState.waiting) {
     setRoot('leftSide')
     renderComponent(waiting);
+  } else if (state.countdown !== lastState.countdown) {
+    renderComponent(starting)
   }
 
   if (state.MapState !== lastState.MapState ||
@@ -349,12 +359,6 @@ StateManagement.subscribe((state) => {
       renderComponent(() => endGame("win"))
     }
   }
-
-  if (state.countdown !== lastState.countdown && path === "/starting") {
-    setRoot("leftSide")
-    renderComponent(starting)
-  }
-
 
   lastState = StateManagement.get()
 })

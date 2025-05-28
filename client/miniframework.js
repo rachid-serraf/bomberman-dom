@@ -77,7 +77,7 @@ function render(vDOM) {
   return element;
 }
 
-let rootElement = null;
+export let rootElement = null;
 
 /**
 * Sets the root element where components will render.

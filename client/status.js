@@ -15,4 +15,5 @@ export const Status = {
   isGameOver: false,
   playersDead: {},
   onInputMsg: "",
+  gameInitializing: false,
 }
