@@ -146,7 +146,7 @@ function diffing(root, oldVDOM, newVDOM, index = 0) {
       } else if (attr === "style" && typeof newVDOM.attrs[attr] === "object") {
         const styleObj = newVDOM.attrs[attr];
         for (const prop in styleObj) {
-          element.style[prop] = styleObj[prop];
+          currentChild.style[prop] = styleObj[prop];
         }
       } else if (newVDOM.attrs[attr] !== oldVDOM.attrs[attr]) {
         if (attr.startsWith("on")) {

@@ -372,6 +372,7 @@ function CurrPlayer(pos = [1, 1]) {
                 let xgrid = tiles.uniqueTiles[0].gridY + 1;
                 let ygrid = tiles.uniqueTiles[0].gridX + 1;
                 const tile = document.querySelector(`[data-row="${xgrid}"][data-col="${ygrid}"]`);
+                if (!tile) return;
                 switch (tile.id) {
                     case "apple":
                         Status.numberCanSetBomb++
