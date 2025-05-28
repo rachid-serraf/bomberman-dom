@@ -8,7 +8,7 @@ function chatting() {
   // new edit
   function handleSubmit(e) {
     e.preventDefault();
-    if (Status.gameInitializing) return;
+    // if (Status.gameInitializing) return;
 
     const message = e.target.message.value.trim();
     if (!message) return;
@@ -47,7 +47,7 @@ function chatting() {
         name: "message",
         placeholder: Status.gameInitializing ? "Starting game..." : "Type your message...",
         class: `chat-input ${Status.gameInitializing ? "disabled-input" : ""}`,
-        ...(Status.gameInitializing ? { readonly: true } : {}),
+        ...(Status.gameInitializing ? { disabled: true } : {}),
         oninput: (e) => {
           Status.onInputMsg = e.target.value;
         },

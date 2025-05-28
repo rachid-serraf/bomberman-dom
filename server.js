@@ -85,174 +85,177 @@ wss.on("connection", (ws) => {
 
   // Handle nickname input (sent by the client)
   ws.on("message", (message) => {
-    const data = JSON.parse(message);
+    try {
+      const data = JSON.parse(message);
 
-    const WsHandelType = {
+      const WsHandelType = {
+        "set_nickname": function () {
+          nickname = data.nickname;
+          ws.nickname = nickname;
 
-      "set_nickname": function () {
-        nickname = data.nickname;
-        ws.nickname = nickname;
+          // Check for available room or create a new room
+          roomID = findAvailableRoom(nickname);
+          if (!roomID) {
+            roomID = `room-${Date.now()}`;
+            rooms[roomID] = {
+              players: [nickname],
+              state: "waiting",
+              timer: CONFIG.WITE_TIME,
+              usersConnection: new Map(),
+            };
+          } else {
+            rooms[roomID].players.push(nickname);
 
-        // Check for available room or create a new room
-        roomID = findAvailableRoom(nickname);
-        if (!roomID) {
-          roomID = `room-${Date.now()}`;
-          rooms[roomID] = {
-            players: [nickname],
-            state: "waiting",
-            timer: CONFIG.WITE_TIME,
-            usersConnection: new Map(),
-          };
-        } else {
-          rooms[roomID].players.push(nickname);
+          }
+          ws.roomID = roomID;
+          rooms[roomID].usersConnection.set(ws, nickname);
 
-        }
-        ws.roomID = roomID;
-        rooms[roomID].usersConnection.set(ws, nickname);
-
-        // need more logic
-        // for player if he exit
-        if (rooms[roomID].players.length === 2) {
-          startRoomCountdown(roomID);
-        }
-
-        // Notify the player about the room
-        ws.send(
-          JSON.stringify({
-            type: "room_info",
-            roomID: roomID,
-            players: rooms[roomID].players,
-          })
-        );
-
-        // Broadcast new player join to the room
-        broadcastToRoom(roomID, {
-          type: "new_player",
-          nickname: nickname,
-          players: rooms[roomID].players,
-          state: rooms[roomID].state,
-        });
-        if (rooms[roomID].players.length === 4) {
-          rooms[roomID].state = "locked"; // Room is locked when full
-          rooms[roomID].timer = -10
-        }
-      },
-      //--------------------------------------------------------------------------
-      "chat": function () {
-        broadcastToRoom(roomID, {
-          type: "chat",
-          message: data.message,
-          nickname: nickname,
-        });
-      },
-      //--------------------------------------------------------------------------
-      "creat_map": function () {
-        if (rooms[roomID].map) {
-          return
-        }
-
-        let rows = 11;
-        let columns = 15;
-        let por = [10, 10, 10, 10, 10, 10, 11, 11, 11, 11]
-
-        let map = [
-          [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],
-          [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
-          [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
-          [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
-          [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
-          [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
-          [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
-          [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
-          [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
-          [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
-          [7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9],
-        ];
-        rooms[roomID].map = map
-
-        function mpbuild() {
-          for (let row = 0; row < map.length; row++) {
-            for (let col = 0; col < map[row].length; col++) {
-              const positionPlayrs = [
-                [1, 1], //p1
-                [1, 2],
-                [2, 1],
-                [1, 13],// p2
-                [1, 12],
-                [2, 13],
-                [9, 1], // p3
-                [8, 1],
-                [9, 2],
-                [9, 13], //p4
-                [8, 13],
-                [9, 12]
-              ];
-
-              if (positionPlayrs.some(([r, c]) => r === row && c === col)) {
-                map[row][col] = 11
-
-              } else if (map[row][col] === 0) {
-                let random = Math.round(Math.random() * 9);
-                map[row][col] = por[random]
-              }
-            }
+          // need more logic
+          // for player if he exit
+          if (rooms[roomID].players.length === 2) {
+            startRoomCountdown(roomID);
           }
 
-        }
-        mpbuild()
+          // Notify the player about the room
+          ws.send(
+            JSON.stringify({
+              type: "room_info",
+              roomID: roomID,
+              players: rooms[roomID].players,
+            })
+          );
 
-        let playersPos = {}
-        let pl = rooms[roomID].players
-        for (let i = 0; i < pl.length; i++) {
-          playersPos[pl[i]] = CONFIG.DEF_POS[i]
-        }
+          // Broadcast new player join to the room
+          broadcastToRoom(roomID, {
+            type: "new_player",
+            nickname: nickname,
+            players: rooms[roomID].players,
+            state: rooms[roomID].state,
+          });
+          if (rooms[roomID].players.length === 4) {
+            rooms[roomID].state = "locked"; // Room is locked when full
+            rooms[roomID].timer = 0
+          }
+        },
+        //--------------------------------------------------------------------------
+        "chat": function () {
+          broadcastToRoom(roomID, {
+            type: "chat",
+            message: data.message,
+            nickname: nickname,
+          });
+        },
+        //--------------------------------------------------------------------------
+        "creat_map": function () {
+          if (rooms[roomID].map) {
+            return
+          }
 
-        broadcastToRoom(roomID, {
-          type: "map_Generet",
-          players: playersPos,
-          map: map,
-          rows: rows,
-          columns: columns,
-          por: por,
-        })
-      },
-      //--------------------------------------------------------------------------
-      "player_moveng": function () {
-        data.nickname = nickname
-        broadcastToRoom(roomID, data, nickname)
-      },
-      //--------------------------------------------------------------------------
-      "set_bomb": function () {
-        data.nickname = nickname
-        broadcastToRoom(roomID, data, nickname)
-      },
-      "generet_item": function () {
-        let por = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
-        let random = Math.round(Math.random() * 9);
-        let item = 11
-        if (por[random] === 1) {
-          item = Math.round(Math.random() * (15 - 13)) + 13
-        }
+          let rows = 11;
+          let columns = 15;
+          let por = [10, 10, 10, 10, 10, 10, 11, 11, 11, 11]
 
-        broadcastToRoom(roomID, {
-          type: "set_item",
-          item,
-          row: data.row,
-          col: data.col,
-        })
-      },
-      "get_item": function () {
-        broadcastToRoom(roomID, data)
-      },
-      "explo_effect": function () {
-        broadcastToRoom(roomID, data)
-      },
-      "players_life": function () {
-        broadcastToRoom(roomID, data)
+          let map = [
+            [2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4],
+            [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
+            [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
+            [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
+            [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
+            [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
+            [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
+            [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
+            [5, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 6],
+            [5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6],
+            [7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9],
+          ];
+          rooms[roomID].map = map
+
+          function mpbuild() {
+            for (let row = 0; row < map.length; row++) {
+              for (let col = 0; col < map[row].length; col++) {
+                const positionPlayrs = [
+                  [1, 1], //p1
+                  [1, 2],
+                  [2, 1],
+                  [1, 13],// p2
+                  [1, 12],
+                  [2, 13],
+                  [9, 1], // p3
+                  [8, 1],
+                  [9, 2],
+                  [9, 13], //p4
+                  [8, 13],
+                  [9, 12]
+                ];
+
+                if (positionPlayrs.some(([r, c]) => r === row && c === col)) {
+                  map[row][col] = 11
+
+                } else if (map[row][col] === 0) {
+                  let random = Math.round(Math.random() * 9);
+                  map[row][col] = por[random]
+                }
+              }
+            }
+
+          }
+          mpbuild()
+
+          let playersPos = {}
+          let pl = rooms[roomID].players
+          for (let i = 0; i < pl.length; i++) {
+            playersPos[pl[i]] = CONFIG.DEF_POS[i]
+          }
+
+          broadcastToRoom(roomID, {
+            type: "map_Generet",
+            players: playersPos,
+            map: map,
+            rows: rows,
+            columns: columns,
+            por: por,
+          })
+        },
+        //--------------------------------------------------------------------------
+        "player_moveng": function () {
+          data.nickname = nickname
+          broadcastToRoom(roomID, data, nickname)
+        },
+        //--------------------------------------------------------------------------
+        "set_bomb": function () {
+          data.nickname = nickname
+          broadcastToRoom(roomID, data, nickname)
+        },
+        "generet_item": function () {
+          let por = [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+          let random = Math.round(Math.random() * 9);
+          let item = 11
+          if (por[random] === 1) {
+            item = Math.round(Math.random() * (15 - 13)) + 13
+          }
+
+          broadcastToRoom(roomID, {
+            type: "set_item",
+            item,
+            row: data.row,
+            col: data.col,
+          })
+        },
+        "get_item": function () {
+          broadcastToRoom(roomID, data)
+        },
+        "explo_effect": function () {
+          broadcastToRoom(roomID, data)
+        },
+        "players_life": function () {
+          broadcastToRoom(roomID, data)
+        }
       }
 
+      WsHandelType[data.type]?.()
+    } catch (err) {
+      // data not valid
     }
-    WsHandelType[data.type]?.()
   });
 
   // Handle WebSocket close event
@@ -261,7 +264,7 @@ wss.on("connection", (ws) => {
     if (nickname && roomID) {
       const room = rooms[roomID];
       if (room) {
-        room.usersConnection =  new Map(Array.from(room.usersConnection).filter(([_, v]) => v != nickname))
+        room.usersConnection = new Map(Array.from(room.usersConnection).filter(([_, v]) => v != nickname))
         room.players = room.players.filter((player) => player !== nickname);
         if (room.players.length === 0) {
           delete rooms[roomID]; // Remove room if no players left

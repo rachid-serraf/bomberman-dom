@@ -164,7 +164,7 @@ const starting = () => {
     return
   }
   // new edit 
-  Status.gameInitializing = (timer === 1);
+  Status.gameInitializing = (timer <= 5 && timer > 0);
 
   setTimeout(() => {
     timer--;
