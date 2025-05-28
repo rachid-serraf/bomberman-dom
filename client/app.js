@@ -15,7 +15,7 @@ export { room, left_time, nickname, sendMessage, messages, ws, Game, router }
 let lastState = {}
 let first = true
 function Game() {
-
+  console.log("OPEN GAME ---------------------------");
   let MapState = StateManagement.get().MapState
 
   // newEdit
@@ -73,6 +73,7 @@ function Game() {
 
     container.style.gridTemplateRows = `repeat(${MapState.rows}, ${Status.tileSize}px)`;
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${Status.tileSize}px)`;
+
   }
 
   let players = [];
@@ -130,6 +131,8 @@ function Game() {
 }
 
 function gameLayout() {
+  console.log("RANDER GAMELAYOUT ******************");
+
   return vdm("div", { class: "waiting-chatting-container" }, [
     vdm("div", { id: "leftSide" }, Game()),
     vdm("div", { id: "rightSide" }, chatting()),
@@ -259,10 +262,13 @@ function enter(nickname1) {
       }, 10)
     }
     if (data.type === "player_moveng") {
+      if (!StateManagement.get().MapState) return
       // Status.players[data.nickname] = { xPos: data.xPos, yPos: data.yPos }
       SetOtherPlayerAndMove(true, data, data.nickname);
     }
     if (data.type === "set_bomb") {
+      if (!StateManagement.get().MapState) return
+
       StateManagement.set({
         bombs: [...(StateManagement.get()?.bombs || []), data]
       });
@@ -347,6 +353,8 @@ StateManagement.subscribe((state) => {
   if (state.MapState !== lastState.MapState ||
     state.bombs !== lastState.bombs ||
     state.explosions !== lastState.explosions) {
+    console.log("SUB OPEN +++++++++++");
+
     setRoot('app')
     renderComponent(gameLayout)
   }

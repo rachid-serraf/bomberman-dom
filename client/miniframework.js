@@ -73,7 +73,6 @@ function render(vDOM) {
   vDOM.children.forEach(child => {
     element.appendChild(render(child));
   });
-
   return element;
 }
 
@@ -181,6 +180,9 @@ function diffing(root, oldVDOM, newVDOM, index = 0) {
   if (oldChildren.length > newChildren.length && currentChild) {
     for (let i = oldChildren.length - 1; i >= newChildren.length; i--) {
       if (i < currentChild.childNodes.length) {
+        if(currentChild.id == "current-player"){
+          console.log(currentChild);
+        }
         currentChild.removeChild(currentChild.childNodes[i]);
       }
     }
@@ -378,12 +380,12 @@ class Router {
   }
 }
 
-function getId(id, data = "", set = false , html = false) {
+function getId(id, data = "", set = false, html = false) {
   if (set) {
     if (document.getElementById(id)) {
       (html) ? document.getElementById(id).innerHTML = data : document.getElementById(id).textContent = data
     }
-  }else{
+  } else {
     return document.getElementById(id)
   }
 }
