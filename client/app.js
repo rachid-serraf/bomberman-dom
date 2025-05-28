@@ -132,7 +132,7 @@ function Game() {
 
 function gameLayout() {
   console.log("RANDER GAMELAYOUT ******************");
-
+  setRoot("app");
   return vdm("div", { class: "waiting-chatting-container" }, [
     vdm("div", { id: "leftSide" }, Game()),
     vdm("div", { id: "rightSide" }, chatting()),
@@ -157,14 +157,14 @@ const starting = () => {
   let timerNode = null;
   let messageNode = null;
   if (timer == 0) {
-    Status.gameInitializing = false;
+    // Status.gameInitializing = false;
     timer = 10;
     router.link("/game")
     ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }))
     return
   }
   // new edit 
-  Status.gameInitializing = (timer <= 5 && timer > 0);
+  // Status.gameInitializing = (timer <= 5 && timer > 0);
 
   setTimeout(() => {
     timer--;
@@ -173,7 +173,12 @@ const starting = () => {
     })
   }, 1000);
 
-  setRoot("leftSide");
+  // if (timer > 3) {
+    setRoot("leftSide");
+  // }else {
+  //   setRoot("app");
+  // }
+
   return vdm("div", { class: "count10_holder" }, [
     vdm("h1", {}, "Countdown Timer"),
     vdm("div", { id: "count10_timer", ref: (el) => { timerNode = el; } }, `${timer}`),

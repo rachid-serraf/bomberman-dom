@@ -272,7 +272,70 @@ const StateManagement = {
   }
 };
 
+// const StateManagement = (() => {
+//   let state = {};
+//   let listeners = [];
+//   let abortController = new AbortController();
+
+//   return {
+//     state,
+    
+//     notify() {
+//       abortController.abort();
+//       abortController = new AbortController();
+      
+//       const signal = abortController.signal;
+//       const currentState = this.state;
+      
+//       listeners.forEach(listener => {
+//         if (signal.aborted) return;
+//         try {
+//           listener(currentState);
+//         } catch (error) {
+//           if (!signal.aborted) console.error('Listener error:', error);
+//         }
+//       });
+//     },
+
+//     get() {
+//       return this.state;
+//     },
+
+//     set(newState) {
+//       if (newState !== this.state) {
+//         this.state = { ...this.state, ...newState };
+//         this.notify();
+//       }
+//     },
+
+//     delete(key) {
+//       if (this.state.hasOwnProperty(key)) {
+//         delete this.state[key];
+//         this.notify();
+//       }
+//     },
+
+//     reset() {
+//       localStorage.removeItem("myState");
+//       this.state = {};
+//       this.notify();
+//     },
+
+//     subscribe(listener) {
+//       listeners.push(listener);
+//       return () => {
+//         listeners = listeners.filter(l => l !== listener);
+//       };
+//     },
+    
+//     abortPending() {
+//       abortController.abort();
+//     }
+//   };
+// })();
+
 // ------------------ Event System ------------------
+
 const EventSystem = {
   events: {},
   eventListeners: {},
