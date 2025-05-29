@@ -12,7 +12,7 @@ const CONFIG = {
     2: [9, 1],
     3: [9, 13],
   },
-  WITE_TIME: 20
+  WITE_TIME: 7
 }
 const server = http.createServer(handleRequest);
 
@@ -134,7 +134,16 @@ wss.on("connection", (ws) => {
           });
           if (rooms[roomID].players.length === 4) {
             rooms[roomID].state = "locked"; // Room is locked when full
-            rooms[roomID].timer = 0
+            console.log(">>>", starting_counter);
+            let id = setInterval(() => {
+              broadcastToRoom(rooms[roomID], { "type": "starting_counter", "timer": starting_counter })
+              starting_counter--;
+              if (starting_counter == 0) {
+                starting_counter = 10;
+                clearInterval(id);
+              }
+            }, 1000);
+            rooms[roomID].timer = 0;
           }
         },
         //--------------------------------------------------------------------------
@@ -309,7 +318,7 @@ function broadcastToRoom(roomID, message, nickname) {
   }
 }
 
-
+let starting_counter = 10;
 // Function to start the countdown for a room
 function startRoomCountdown(roomID) {
   const room = rooms[roomID];
@@ -324,6 +333,15 @@ function startRoomCountdown(roomID) {
       });
     } else {
       room.state = "locked"; // Lock the room when countdown ends
+      let id = setInterval(() => {
+        broadcastToRoom(roomID, { "type": "starting_counter", "timer": starting_counter })
+        console.log("azda",starting_counter)
+        starting_counter--;
+        if (starting_counter == 0) {
+          starting_counter = 10;
+          clearInterval(id);
+        }
+      }, 1000);
       clearInterval(countdownInterval);
       broadcastToRoom(roomID, {
         type: "room_locked",

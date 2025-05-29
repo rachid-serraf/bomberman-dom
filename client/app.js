@@ -143,6 +143,7 @@ function gameLayout() {
 let ws
 let room = {}
 let left_time = 20
+let starting_time = 10;
 let nickname
 let messages = []
 function sendMessage(message) {
@@ -156,32 +157,15 @@ let timer = 10;
 const starting = () => {
   let timerNode = null;
   let messageNode = null;
-  if (timer == 0) {
-    // Status.gameInitializing = false;
-    timer = 10;
-    router.link("/game")
-    ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }))
-    return
+  if (starting_time == 1){
+    router.link("/game");
+    starting_time = 10;
+    ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }));
   }
-  // new edit 
-  // Status.gameInitializing = (timer <= 5 && timer > 0);
-
-  setTimeout(() => {
-    timer--;
-    StateManagement.set({
-      countdown: timer
-    })
-  }, 1000);
-
-  // if (timer > 3) {
-    setRoot("leftSide");
-  // }else {
-  //   setRoot("app");
-  // }
 
   return vdm("div", { class: "count10_holder" }, [
     vdm("h1", {}, "Countdown Timer"),
-    vdm("div", { id: "count10_timer", ref: (el) => { timerNode = el; } }, `${timer}`),
+    vdm("div", { id: "count10_timer", ref: (el) => { timerNode = el; } }, `${starting_time}`),
     vdm("div", { class: "count10_message", id: "message", ref: (el) => { messageNode = el; } })
   ]);
 };
@@ -247,6 +231,14 @@ function enter(nickname1) {
     } else if (data.type === "player_left") {
       Status.life[data.nickname] = 0
       Status.playersDead[data.nickname] = true
+      //-------------------------------------------------------------------------------
+    } else if (data.type == "starting_counter") {
+      starting_time = data.timer;
+
+      starting();
+      StateManagement.set({
+        timeToStart: starting_time,
+      });
     }
     if (data.type === "map_Generet") {
       StateManagement.set({ MapState: data })
@@ -362,6 +354,11 @@ StateManagement.subscribe((state) => {
 
     setRoot('app')
     renderComponent(gameLayout)
+  }
+
+  if (state.timeToStart != lastState.timeToStart){
+    setRoot("leftSide");
+    renderComponent(starting);
   }
 
   if (state.endGame !== lastState.endGame) {
