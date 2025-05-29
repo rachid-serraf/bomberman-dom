@@ -61,8 +61,8 @@ export function updatePositons() {
     let diff = (Status.tileSize / 100) * 10;
     playerWidth = Status.tileSize - diff;
     playerHeight = Status.tileSize - diff;
-    speedX = (Status.tileSize / 20) + Status.Speed;
-    speedY = (Status.tileSize / 20) + Status.Speed;
+    speedX = (Status.tileSize / 20) + Status.Speed * ratio;
+    speedY = (Status.tileSize / 20) + Status.Speed * ratio;
 
     if (playerRegistry.currentPlayer) {
         const currPlayer = getId("current-player");
@@ -384,7 +384,7 @@ function CurrPlayer(pos = [1, 1]) {
                         break;
                     case "sombola":
                         if (Status.Speed < 2) {
-                            Status.Speed += 0.5
+                            Status.Speed += Status.tileSize / 64
                         }
                         sendGetItem(tile.id)
                         break;

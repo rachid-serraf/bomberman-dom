@@ -139,7 +139,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  background-color: #654734;
+  background-color: #4f94b9;;
 }
 .message {
   margin-bottom: 15px;
@@ -151,14 +151,14 @@
 .user-message{
     align-self: flex-end;
     background-color: var(--tan);
-    color: #000;
+    color: #1e1e1e;
     font-size: 2vh;
 }
 
 .other-message {
   align-self: flex-start;
   background-color: #ab824b;
-  color: #000;
+  color: #ffffff;
   font-size: 2vh;
 }
 
