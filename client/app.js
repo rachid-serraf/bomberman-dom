@@ -17,7 +17,7 @@ let first = true
 function Game() {
 
   let MapState = StateManagement.get().MapState
-  
+
   // newEdit
   if (!MapState || !MapState.map || MapState.map.length === 0) {
     return vdm("div", {}, "Loading map...")
@@ -186,6 +186,7 @@ function enter(nickname1) {
   };
 
   ws.onmessage = function (event) {
+
     const data = JSON.parse(event.data);
     const state = StateManagement.get();
 
@@ -233,8 +234,11 @@ function enter(nickname1) {
       StateManagement.set({ chat: data });
     }
     else if (data.type === "player_left" && data.state != "starting") {
-      Status.life[data.nickname] = 0
+      console.log(data);
+      Status.life[data.nickname] = 0;
       Status.playersDead[data.nickname] = true
+      setRoot('app');
+      renderComponent(gameLayout);
     }
 
     else if (data.type === "map_Generet") {
