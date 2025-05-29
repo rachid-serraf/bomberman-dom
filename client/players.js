@@ -302,8 +302,8 @@ function CurrPlayer(pos = [1, 1]) {
                 ws.close()
                 return
             }
-            let len = Object.keys(StateManagement.get().MapState.players).length
-            if (len == 1 || len === Object.keys(Status.playersDead).length + 1) {
+
+            if (Object.keys(StateManagement.get().MapState.players).length === Object.keys(Status.playersDead).length + 1) {
                 StateManagement.set({ endGame: { type: "win" } })
                 ws.close()
                 return

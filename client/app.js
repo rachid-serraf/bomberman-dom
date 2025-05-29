@@ -17,8 +17,7 @@ let first = true
 function Game() {
 
   let MapState = StateManagement.get().MapState
-  console.log("---------", MapState);
-
+  
   // newEdit
   if (!MapState || !MapState.map || MapState.map.length === 0) {
     return vdm("div", {}, "Loading map...")
@@ -77,19 +76,7 @@ function Game() {
   }
 
   let players = [];
-  // if (Object.keys(StateManagement.get().MapState.players).length == 1) {
-  //   console.log("single player");
-  //   console.log("++",Status.playersDead);
-  //   console.log("--",Object.keys(StateManagement.get().MapState?.players).length , Object.keys(Status.playersDead).length + 1);
-    
-  //   // setRoot("app")
-  //   // renderComponent(() => endGame("win"));
-  //   // ws.close()
 
-  //   // StateManagement.set({ endGame: { type: "win" } })
-  //   // ws.close()
-  //   // return
-  // }
   for (let [nam, position] of Object.entries(MapState.players)) {
     if (first) {
       Status.life[nam] = 3
@@ -245,7 +232,7 @@ function enter(nickname1) {
       });
       StateManagement.set({ chat: data });
     }
-    else if (data.type === "player_left") {
+    else if (data.type === "player_left" && data.state != "starting") {
       Status.life[data.nickname] = 0
       Status.playersDead[data.nickname] = true
     }
