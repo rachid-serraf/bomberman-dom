@@ -1,5 +1,5 @@
 import { chatting, waitingChattingPage, waiting, endGame, EmotesCat } from "./htmls.js";
-import { EventSystem, rootElement, Router, setRoot, StateManagement } from "./miniframework.js";
+import { EventSystem, Router, setRoot, StateManagement } from "./miniframework.js";
 import { renderComponent } from "./miniframework.js";
 import { vdm } from "./miniframework.js";
 import { CurrPlayer, SetOtherPlayerAndMove } from "./players.js";
@@ -15,9 +15,9 @@ export { room, left_time, nickname, sendMessage, messages, ws, Game, router }
 let lastState = {}
 let first = true
 function Game() {
-  console.log("OPEN GAME ---------------------------");
-  let MapState = StateManagement.get().MapState
 
+  let MapState = StateManagement.get().MapState
+  
   // newEdit
   if (!MapState || !MapState.map || MapState.map.length === 0) {
     return vdm("div", {}, "Loading map...")
@@ -73,7 +73,6 @@ function Game() {
 
     container.style.gridTemplateRows = `repeat(${MapState.rows}, ${Status.tileSize}px)`;
     container.style.gridTemplateColumns = `repeat(${MapState.columns}, ${Status.tileSize}px)`;
-
   }
 
   let players = [];
@@ -131,8 +130,6 @@ function Game() {
 }
 
 function gameLayout() {
-  console.log("RANDER GAMELAYOUT ******************");
-  setRoot("app");
   return vdm("div", { class: "waiting-chatting-container" }, [
     vdm("div", { id: "leftSide" }, Game()),
     vdm("div", { id: "rightSide" }, chatting()),
@@ -143,7 +140,6 @@ function gameLayout() {
 let ws
 let room = {}
 let left_time = 20
-let starting_time = 10;
 let nickname
 let messages = []
 function sendMessage(message) {
@@ -153,23 +149,20 @@ function sendMessage(message) {
   ws.send(JSON.stringify({ type: "chat", message: message, nickname: nickname }));
 }
 
-let timer = 10;
 const starting = () => {
-  let timerNode = null;
-  let messageNode = null;
-  if (starting_time == 1){
-    router.link("/game");
-    starting_time = 10;
-    ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }));
-  }
+  const { startingTimer } = StateManagement.get();
 
   return vdm("div", { class: "count10_holder" }, [
-    vdm("h1", {}, "Countdown Timer"),
-    vdm("div", { id: "count10_timer", ref: (el) => { timerNode = el; } }, `${starting_time}`),
-    vdm("div", { class: "count10_message", id: "message", ref: (el) => { messageNode = el; } })
+    vdm("h1", {}, "Starting Game"),
+    vdm("div", {
+      id: "count10_timer"
+    }, `${startingTimer}`),
+    vdm("div", {
+      class: "count10_message",
+      id: "message"
+    })
   ]);
 };
-
 
 function enter(nickname1) {
   messages = []
@@ -188,104 +181,104 @@ function enter(nickname1) {
   const port = window.location.port ? `:${window.location.port}` : "";
   ws = new WebSocket(`${protocol}://${hostname}${port}`);
 
-  // onopen event is triggered when the connection is established
   ws.onopen = function () {
     ws.send(JSON.stringify({ type: "set_nickname", nickname: nickname }));
   };
 
   ws.onmessage = function (event) {
     const data = JSON.parse(event.data);
+    const state = StateManagement.get();
 
     if (data.type === "room_info") {
       room = data;
+    }
 
-    } else if (data.state === "waiting" && (data.type === "new_player" || data.type === "player_left")) {
-      room.players = data.players
-      if (data.type === "player_left" && room.players.length === 1) {
-        left_time = 20
-      }
+    else if (data.state === "waiting" && (data.type === "new_player" || data.type === "player_left")) {
+      room.players = data.players;
+      StateManagement.set({ waiting: data });
+    }
+
+    else if (data.type === "waiting_countdown") {
+      left_time = data.timeLeft;
       StateManagement.set({
-        waiting: data
-      })
-
-    } else if (data.type === "countdown") {
-      left_time = data.timeLeft
-      StateManagement.set({
-        waiting: data
-      })
-
-      if (left_time === 0) {
-        router.link("/starting")
-      }
-
-    } else if (data.type === "room_locked") {
-      router.link("/starting")
-
-    } else if (data.type === "chat") {
-      let is_mine = data.nickname === nickname
-      messages.push({ nickname: data.nickname, message: data.message, is_mine: is_mine });
-
-      StateManagement.set({
-        chat: data,
-      })
-    } else if (data.type === "player_left") {
-      Status.life[data.nickname] = 0
-      Status.playersDead[data.nickname] = true
-      //-------------------------------------------------------------------------------
-    } else if (data.type == "starting_counter") {
-      starting_time = data.timer;
-
-      starting();
-      StateManagement.set({
-        timeToStart: starting_time,
+        waitingTimer: data.timeLeft,
+        gameState: "waiting"
       });
     }
-    if (data.type === "map_Generet") {
-      StateManagement.set({ MapState: data })
+    else if (data.type === "starting_countdown") {
+      StateManagement.set({
+        startingTimer: data.timeLeft,
+        gameState: "starting"
+      });
+
+      if (data.timeLeft <= 0) {
+        router.link("/game");
+        ws.send(JSON.stringify({ type: "creat_map", nickname: nickname }));
+      }
+    }
+    else if (data.type === "room_locked") {
+      StateManagement.set({
+        startingTimer: data.timeLeft || 10,
+        gameState: "starting"
+      });
+      router.link("/starting");
+    }
+    else if (data.type === "chat") {
+      const is_mine = data.nickname === nickname;
+      messages.push({
+        nickname: data.nickname,
+        message: data.message,
+        is_mine: is_mine
+      });
+      StateManagement.set({ chat: data });
+    }
+    else if (data.type === "player_left" && data.state != "starting") {
+      Status.life[data.nickname] = 0
+      Status.playersDead[data.nickname] = true
+    }
+
+    else if (data.type === "map_Generet") {
+      StateManagement.set({ MapState: data });
       setTimeout(() => {
         EventSystem.add(window, 'resize', () => {
           if (window.isResizing || StateManagement.get().endGame) return;
           window.isResizing = true;
-
-          setRoot("app")
+          setRoot("app");
           renderComponent(gameLayout);
-
-          // setTimeout(() => {
           updatePositons();
           window.isResizing = false;
-          // }, 0);
-
         }, true);
-      }, 10)
+      }, 10);
     }
-    if (data.type === "player_moveng") {
-      if (!StateManagement.get().MapState) return
-      // Status.players[data.nickname] = { xPos: data.xPos, yPos: data.yPos }
+    else if (data.type === "player_moveng") {
       SetOtherPlayerAndMove(true, data, data.nickname);
     }
-    if (data.type === "set_bomb") {
-      if (!StateManagement.get().MapState) return
-
+    else if (data.type === "set_bomb") {
       StateManagement.set({
-        bombs: [...(StateManagement.get()?.bombs || []), data]
+        bombs: [...(state?.bombs || []), data]
       });
     }
-    if (data.type === "set_item") {
-      let mp = StateManagement.get().MapState.map
-      mp[data.row][data.col] = data.item
-      StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
+    else if (data.type === "set_item") {
+      const mp = [...state.MapState.map];
+      mp[data.row][data.col] = data.item;
+      StateManagement.set({
+        MapState: { ...state.MapState, map: mp }
+      });
     }
-    if (data.type === "get_item") {
-      let mp = StateManagement.get().MapState.map
-
-      mp[data.xgrid][data.ygrid] = 11
-      StateManagement.set({ MapState: { ...StateManagement.get().MapState, map: mp } })
+    else if (data.type === "get_item") {
+      const mp = [...state.MapState.map];
+      mp[data.xgrid][data.ygrid] = 11;
+      StateManagement.set({
+        MapState: { ...state.MapState, map: mp }
+      });
     }
-    if (data.type === "explo_effect") {
-      StateManagement.set({ explosions: [...(StateManagement.get()?.explosions || []), ...data.exploAdd] })
+    else if (data.type === "explo_effect") {
+      StateManagement.set({
+        explosions: [...(state?.explosions || []), ...data.exploAdd]
+      });
     }
-    if (data.type === "players_life") {
-      Status.life = data.life
+    else if (data.type === "players_life") {
+      Status.life = data.life;
     }
   };
 
@@ -330,46 +323,45 @@ router.setNotFound(() =>
 )
 
 StateManagement.subscribe((state) => {
-  const path = window.location.pathname
+  const path = window.location.pathname;
 
   if (state.chat !== lastState.chat) {
     if (path === "/waiting" || path === "/starting") {
-      setRoot('rightSide')
+      setRoot('rightSide');
       renderComponent(chatting);
     } else {
-      setRoot('app')
+      setRoot('app');
       renderComponent(gameLayout);
     }
-  } else if (state.waiting !== lastState.waiting) {
-    setRoot('leftSide')
+  }
+
+  if ((state.waiting !== lastState.waiting || state.waitingTimer !== lastState.waitingTimer) && path === "/waiting") {
+    setRoot('leftSide');
     renderComponent(waiting);
-  } else if (state.countdown !== lastState.countdown) {
-    renderComponent(starting)
   }
 
   if (state.MapState !== lastState.MapState ||
     state.bombs !== lastState.bombs ||
     state.explosions !== lastState.explosions) {
-    console.log("SUB OPEN +++++++++++");
-
-    setRoot('app')
-    renderComponent(gameLayout)
+    setRoot('app');
+    renderComponent(gameLayout);
   }
 
-  if (state.timeToStart != lastState.timeToStart){
+  if (state.endGame !== lastState.endGame) {
+    setRoot('app');
+    if (state.endGame.type === "loss") {
+      renderComponent(() => endGame("loss"));
+    } else {
+      renderComponent(() => endGame("win"));
+    }
+  }
+
+  if (state.startingTimer !== lastState.startingTimer && path === "/starting") {
     setRoot("leftSide");
     renderComponent(starting);
   }
 
-  if (state.endGame !== lastState.endGame) {
-    setRoot('app')
-    if (state.endGame.type === "loss") {
-      renderComponent(() => endGame("loss"))
-    } else {
-      renderComponent(() => endGame("win"))
-    }
-  }
+  lastState = { ...state };
+});
 
-  lastState = StateManagement.get()
-})
 
