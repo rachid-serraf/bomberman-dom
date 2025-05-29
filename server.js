@@ -269,7 +269,7 @@ wss.on("connection", (ws) => {
       WsHandelType[data.type]?.()
 
     } catch (error) {
-
+      // not valid data
     }
   });
 

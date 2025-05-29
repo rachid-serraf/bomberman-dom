@@ -234,8 +234,6 @@ function enter(nickname1) {
       StateManagement.set({ chat: data });
     }
     else if (data.type === "player_left" && data.state != "starting") {
-      console.log(data);
-      Status.life[data.nickname] = 0;
       Status.playersDead[data.nickname] = true
       setRoot('app');
       renderComponent(gameLayout);
