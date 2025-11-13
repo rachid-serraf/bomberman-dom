@@ -1,4 +1,5 @@
 # Action Plan for Bomberman
+<video src="gameplay.mp4" width="720" height="420" controls></video>
 
 ## Phase 1: Setup and Architecture (2 days)
 
@@ -8,7 +9,7 @@
 - [x] Plan client-side game loop using requestAnimationFrame
 - [x] Design component system for game entities (players, bombs, etc.)
 
-## Phase 2: Core Game Implementation (5 days)
+## Phase 2: Core Game Implementation
 
 ###  Map System (component)
 make component tilemap have this property
@@ -46,7 +47,7 @@ here you should make websocket as have lot of types (status player join event ..
 - [x] Handle client prediction for smooth movement
 - [x] Implement basic lag compensation
 
-## Phase 3: User Experience (3 days)
+## Phase 3: User Experience
 
 ### Lobby System
 - [x] Create nickname entry screen
@@ -66,7 +67,7 @@ here you should make websocket as have lot of types (status player join event ..
 - [x] Create game over screen with winner announcement
 - [x] Cross-browser testing
 
-## Phase 4: Deployment and Final Checks (2 days)
+## Phase 4: Deployment and Final Checks
 
 ### Server Deployment
 - [x] Set up production server environment
@@ -89,7 +90,7 @@ here you should make websocket as have lot of types (status player join event ..
 - State synchronization with server
 - Predictive movement for smooth gameplay
 
-### Server-side (Golang)
+### Server-side (nodejs)
 - WebSocket connection management
 - Game state authority and validation
 - Message routing between clients
