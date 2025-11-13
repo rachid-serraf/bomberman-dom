@@ -1,7 +1,8 @@
 # Action Plan for Bomberman
+
 <video src="gameplay.mp4" width="720" height="420" controls></video>
 
-## Phase 1: Setup and Architecture (2 days)
+## Phase 1: Setup and Architecture
 
 ###  Architecture Design
 - [x] Design WebSocket protocol schema for game messages
