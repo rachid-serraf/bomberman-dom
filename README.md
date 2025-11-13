@@ -20,65 +20,65 @@ make component tilemap have this property
 ###  Player Mechanics (component)
 make player component can change x,y and name of player
 you can make 2 component cuurplayer and autherPlayers or collection them
-- [ ] Implement player movement (4-directional)
-- [ ] Add bomb placement logic
-- [ ] Create explosion mechanics (4-directional)
-- [ ] Implement collision detection with walls/blocks/players
+- [x] Implement player movement (4-directional)
+- [x] Add bomb placement logic
+- [x] Create explosion mechanics (4-directional)
+- [x] Implement collision detection with walls/blocks/players
 
 ### Game Rules & Power-ups
-- [ ] Add 3-life system per player
-- [ ] Implement power-up system (random drops from blocks)
+- [x] Add 3-life system per player
+- [x] Implement power-up system (random drops from blocks)
   - Bomb capacity
   - Flame range
   - Movement speed
-- [ ] Create win condition (last player standing)
+- [x] Create win condition (last player standing)
 
 ### Performance Optimization
-- [ ] Profile game loop for 60fps consistency
-- [ ] Optimize DOM updates (minimize reflows/repaints)
-- [ ] Implement object pooling for frequent elements (explosions, etc.)
-- [ ] Test with simulated heavy load
+- [x] Profile game loop for 60fps consistency
+- [x] Optimize DOM updates (minimize reflows/repaints)
+- [x] Implement object pooling for frequent elements (explosions, etc.)
+- [x] Test with simulated heavy load
 
 ### Multiplayer Basics
 here you should make websocket as have lot of types (status player join event ...)
-- [ ] Implement WebSocket connection handling
-- [ ] Create player synchronization
-- [ ] Handle client prediction for smooth movement
-- [ ] Implement basic lag compensation
+- [x] Implement WebSocket connection handling
+- [x] Create player synchronization
+- [x] Handle client prediction for smooth movement
+- [x] Implement basic lag compensation
 
 ## Phase 3: User Experience (3 days)
 
 ### Lobby System
-- [ ] Create nickname entry screen
-- [ ] Implement player waiting room with counter
-- [ ] Add game start timers (20s wait, 10s countdown)
-- [ ] Design responsive UI for all screens
+- [x] Create nickname entry screen
+- [x] Implement player waiting room with counter
+- [x] Add game start timers (20s wait, 10s countdown)
+- [x] Design responsive UI for all screens
 
 ### Chat System
-- [ ] Implement WebSocket chat functionality
-- [ ] Create chat UI with message history
-- [ ] Add player name differentiation
-- [ ] Implement chat message throttling
+- [x] Implement WebSocket chat functionality
+- [x] Create chat UI with message history
+- [x] Add player name differentiation
+- [x] Implement chat message throttling
 
 ###  Polish and Testing
-- [ ] Add sound effects
-- [ ] Implement visual feedback for actions
-- [ ] Create game over screen with winner announcement
-- [ ] Cross-browser testing
+- [x] Add sound effects
+- [x] Implement visual feedback for actions
+- [x] Create game over screen with winner announcement
+- [x] Cross-browser testing
 
 ## Phase 4: Deployment and Final Checks (2 days)
 
 ### Server Deployment
-- [ ] Set up production server environment
-- [ ] Configure WebSocket secure connection (wss://)
-- [ ] Implement basic server-side validation
-- [ ] Load testing with multiple simultaneous games
+- [x] Set up production server environment
+- [x] Configure WebSocket secure connection (wss://)
+- [x] Implement basic server-side validation
+- [x] Load testing with multiple simultaneous games
 
 ### Final Testing and Documentation
-- [ ] Comprehensive gameplay testing
-- [ ] Performance validation (60fps under load)
-- [ ] Write basic user documentation
-- [ ] Create simple installation/run instructions
+- [x] Comprehensive gameplay testing
+- [x] Performance validation (60fps under load)
+- [x] Write basic user documentation
+- [x] Create simple installation/run instructions
 
 ## Technical Considerations
 
